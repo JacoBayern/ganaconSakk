@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gana Con Sakk</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="body">
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>Gana Con Sakk</h1>
+            </div>
+            <nav class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sección del Premio (Visión de lo que se sortea) -->
+    <section class="premio">
+        <div class="premio-container">
+            <div class="premio-imagen">
+                <img src="/static/images/premio.jpg" alt="Auto 0 KM - Premio del sorteo">
+            </div>
+            <div class="premio-info">
+                <h2>¡Sorteo de un Auto 0 KM!</h2>
+                <div class="premio-botones">
+                    <button class="btn-comprar">Comprar 🎟️</button>
+                    <button class="btn-ver-boletos">Ver mis tickets comprados</button>
+                    <div class="boletos-vendidos">
+                        <h3>Boletos vendidos:</h3>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 65%; " data-progress="65%"></div>
+                            <span class="progress-text">65%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cuenta Regresiva o Porcentaje de Boletos Vendidos -->
+    <section class="estado-sorteo">
+        <div class="cuenta-regresiva">
+            <div>
+                <p>Gana Con Saak</h3>
+                <p>|</p>
+            </div>
+            <div>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sorteos Anteriores (Cards) -->
+    <section class="sorteos-anteriores">
+        <h2>Sorteos Anteriores</h2>
+        <div class="cards-container">
+            <div class="card" onclick="location.href='detalles_sorteo.html'">
+                <img src="/static/images/moto.jpg" alt="Sorteo 1">
+                <div class="text-card">
+                    <h3>Sorteo de Moto</h3>
+                    <p>AGOTADO ° 26 june 2025</p>
+                </div>
+            </div>
+            <div class="card" onclick="location.href='detalles_sorteo.html'">
+                <img src="/static/images/2webp" alt="Sorteo 2">
+                <div class="text-card">
+                    <h3>Sorteo de Moto</h3>
+                    <p>AGOTADO ° 26 june 2025</p>
+                </div>
+            </div>
+            <!-- Más cards -->
+        </div>
+    </section>
+
+
+    <section class="pre-footer">
+        <h3>¿Qué estás espertando para participar en el próximo sorteo?</h3>
+        <button class="btn-comprar-pfooter">Comprar Boletos Ahora</button>
+    </section>
+    
+    <footer class="footer">
+        <p>&copy; 2025 Gana Con Sakk. Todos los derechos reservados.</p>
+        <div class="social-links">
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        </div>
+    </footer>
+
+    <script src="static/js/main.js"></script>
+</body>
+</html>

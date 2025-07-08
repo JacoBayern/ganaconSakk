@@ -1,0 +1,460 @@
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #2c3e50;
+    --third-color: #45a049; 
+    --accent-color: #3498db;
+    --text-dark: #333;
+    --text-light: white;
+    --bg-light: #f9f9f9;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 2rem;
+    --space-xl: 5rem:
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: var(--primary-color);
+}
+
+/* Contenedor principal para consistencia */
+.main-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+}
+
+/* Header Styles - Mejorado */
+.header {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: var(--space-md) 0;
+    position: relative;
+    z-index: 10;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+    gap: var(--space-lg);
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+}
+
+.social-links {
+    display: flex;
+    gap: var(--space-md);
+}
+
+.social-links a {
+    color: white;
+    font-size: 1.3rem;
+    transition: transform 0.3s;
+    display: inline-block;
+}
+
+.social-links a:hover {
+    transform: scale(1.15) translateY(-2px);
+}
+
+
+/* Sección del premio - Mejor alineación */
+.premio {
+    background-color: var(--primary-color);
+    padding: var(--space-lg) 0;
+    margin: 0 auto;
+}
+
+.premio-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: var(--space-lg);
+    align-items: center;
+    padding: 0 var(--space-lg);
+}
+
+.premio-info {
+    flex: 1;
+}
+
+.premio-info h2 {
+    font-size: 2.5rem;
+    color: var(--text-light);
+    margin-bottom: var(--space-md);
+    line-height: 1.2;
+}
+
+.premio-detalles {
+    margin-bottom: var(--space-lg);
+}
+
+.premio-detalles p {
+    font-size: 1.1rem;
+    margin: var(--space-sm) 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.premio-botones {
+    display: flex;
+    flex-direction: column;  /* Cambia la dirección a columna */
+    gap: var(--space-md);
+    width: 100%;  /* Ocupa todo el ancho disponible */
+    max-width: 1000px;  /* Ancho máximo opcional */
+}
+
+.btn-comprar, .btn-ver-boletos {
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.btn-comprar {
+    background-color: #eace69;
+    color: var(--text-dark);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.btn-comprar:hover {
+    background-color: #c49f3b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-comprar-pfooter {
+    background-color: #eace69;
+    color: var(--text-dark);
+    animation: pulse 1.5s infinite;
+}
+
+.btn-comprar-pfooter{
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+
+.btn-comprar-pfooter:hover {
+    background-color: #c49f3b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-ver-boletos {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-ver-boletos:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.premio-imagen {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.premio-imagen img {
+    max-width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transition: transform 0.5s;
+}
+
+.premio-imagen:hover img {
+    transform: scale(1.02);
+}
+
+.estado-sorteo {
+    background-color: var(--bg-light);
+    padding: 3.5rem 2rem;
+}
+
+.cuenta-regresiva {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.cuenta-regresiva > div {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.cuenta-regresiva p {
+    margin: 0;
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.cuenta-regresiva p:first-child {
+    color: var(--primary-color);
+}
+
+.cuenta-regresiva .social-links {
+    gap: var(--space-md);
+}
+
+.cuenta-regresiva .social-links a {
+    color: var(--secondary-color);
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.cuenta-regresiva .social-links a:hover {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .cuenta-regresiva {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .cuenta-regresiva > div {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .cuenta-regresiva p {
+        font-size: 1rem;
+    }
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    height: 25px;
+    overflow: hidden;
+    position: relative; /* Necesario para el posicionamiento absoluto */
+}
+
+.progress {
+    background-color: #eace69;
+    height: 100%;
+    transition: width 0.5s ease;
+    /* Eliminamos flex del .progress */
+}
+
+/* Texto absolutamente centrado */
+.progress-bar::after {
+    content: attr(data-progress); /* Tomará el valor de data-progress */
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    color: var(--text-dark);
+    font-weight: bold;
+    font-size: 0.8rem;
+    z-index: 2; /* Para que esté por encima de las barras */
+}
+
+.progress-text {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-dark);
+    font-weight: bold;
+    z-index: 2;
+}
+
+/* Sorteos anteriores - Cards alineadas */
+.sorteos-anteriores {
+    padding: var(--space-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.sorteos-anteriores h2 {
+    text-align: center;
+    margin-bottom: var(--space-lg);
+    color: var(--text-light);
+    font-size: 2rem;
+}
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-lg);
+    padding: var(--space-md);
+}
+
+/* Estilo para cada card */
+.card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color:  var(--third-color);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo para la imagen */
+.card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover ;
+    border-bottom: 1px solid  var(--third-color); /* Línea separadora */
+}
+
+.text-card{
+    padding: 0 1rem;
+    display: inline;
+    background-color: var(--third-color);
+    color: var(--text-light);
+}
+
+/* Efecto de borde al pasar el mouse */
+.card:hover {
+    border: 1px solid var(--accent-color);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .cards-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .card img {
+        height: 160px;
+    }
+}
+
+
+/* Pre-footer Styles */
+.pre-footer {
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+    padding: var(--space-xl) var(--space-lg);
+    text-align: center;
+    padding-bottom: var(--space-lg);
+}
+
+.pre-footer h3 {
+    font-size: var(--space-md);
+    line-height: 1.4;
+    padding-top: var(--space-lg);
+}
+
+
+
+/* Footer - Alineación perfecta */
+.footer {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: var(--space-lg);
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    max-width: 100%;
+}
+
+.footer .social-links {
+    gap: var(--space-sm);
+}
+
+.footer .social-links a {
+    font-size: 1.2rem;
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .premio-container {
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+
+    .socials-section {
+        flex-direction: column;
+        gap: var(--space-lg);
+        text-align: center;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr; /* Una sola columna */
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .card {
+        max-width: 100%; /* Ocupa todo el ancho en móviles */
+    }
+
+    .footer {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --space-sm: 0.4rem;
+        --space-md: 0.8rem;
+        --space-lg: 1.5rem;
+    }
+
+    .premio-info h2 {
+        font-size: 2rem;
+    }
+
+    .btn-comprar, .btn-ver-boletos {
+        width: 100%;
+    }
+}
