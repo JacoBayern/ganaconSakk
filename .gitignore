@@ -6,3 +6,10 @@
 *.JPEG
 *.WEBP
 *2WEBP*
+*.env
+*.log
+/media/
+/staticfiles/
+__pycache__/
+*.py[cod]
+*$py.class
