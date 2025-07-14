@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+{% block content %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,27 +26,29 @@
     </header>
 
     <!-- Sección del Premio (Visión de lo que se sortea) -->
+    {%if sorteo_principal%}
     <section class="premio">
         <div class="premio-container">
             <div class="premio-imagen">
-                <img src="/static/images/premio.jpg" alt="Auto 0 KM - Premio del sorteo">
+                <img src="{{ sorteo_principal.prize_picture.url}}" alt="{{sorteo_principal.title}}">
             </div>
             <div class="premio-info">
-                <h2>¡Sorteo de un Auto 0 KM!</h2>
+                <h2>{{sorteo_principal.title}}</h2>
                 <div class="premio-botones">
-                    <button class="btn-comprar">Comprar 🎟️</button>
+                    <button class="btn-comprar" data-sorteo-id='{{sorteo_principal.id}}' >Comprar 🎟️</button>
                     <button class="btn-ver-boletos">Ver mis tickets comprados</button>
                     <div class="boletos-vendidos">
                         <h3>Boletos vendidos:</h3>
                         <div class="progress-bar">
-                            <div class="progress" style="width: 65%; " data-progress="65%"></div>
-                            <span class="progress-text">65%</span>
+                            <div class="progress" style="width: {{ sorteo_principal.percentage_sold }}%; " data-progress="{{ sorteo_principal.percentage_sold}}%;"></div>
+                            <span class="progress-text">{{Porcentaje_vendido}}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    {% endif %}
 
     <!-- Cuenta Regresiva o Porcentaje de Boletos Vendidos -->
     <section class="estado-sorteo">
@@ -66,26 +69,24 @@
     </section>
 
     <!-- Sorteos Anteriores (Cards) -->
+     {% if otros_sorteos %}
     <section class="sorteos-anteriores">
         <h2>Sorteos Anteriores</h2>
-        <div class="cards-container">
-            <div class="card" onclick="location.href='detalles_sorteo.html'">
-                <img src="/static/images/moto.jpg" alt="Sorteo 1">
-                <div class="text-card">
-                    <h3>Sorteo de Moto</h3>
-                    <p>AGOTADO ° 26 june 2025</p>
+        {% for sorteo in otros_sorteos %}
+            <div class="cards-container">
+                <div class="card" onclick="location.href='detalles_sorteo.html'">
+                    <img src="/static/images/moto.jpg" alt="Sorteo 1">
+                    <div class="text-card">
+                        <h3>{{sorteo.title}}</h3>
+                        <p>AGOTADO ° 26 june 2025</p>
+                    </div>
                 </div>
             </div>
-            <div class="card" onclick="location.href='detalles_sorteo.html'">
-                <img src="/static/images/2webp" alt="Sorteo 2">
-                <div class="text-card">
-                    <h3>Sorteo de Moto</h3>
-                    <p>AGOTADO ° 26 june 2025</p>
-                </div>
-            </div>
-            <!-- Más cards -->
-        </div>
-    </section>
+        {% endfor %}
+        
+    </section> 
+     {% endif %}
+    
 
 
     <section class="pre-footer">
@@ -102,7 +103,8 @@
             <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
     </footer>
-
     <script src="static/js/main.js"></script>
+    {% endblock content %}
+    <script src="{% static 'js/modal.js' %}"></script>
 </body>
 </html>
