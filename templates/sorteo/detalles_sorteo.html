@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="details-background">
+  <div class="rifa-detalle">
+ 
+    <header class="rifa-header">
+      <p class="rifa-fecha">11 de Julio de 2025</p>
+      <h1>{{ sorteo.title }}</h1>
+    </header>
+ 
+    <div class="rifa-imagen-container">
+      <div class="rifa-imagen">
+          <img src="{{sorteo.prize_picture.url}}" alt="{{sorteo.title}}">
+      </div>
+      <div class="rifa-acciones">
+        {% if porcentaje < 100 %}
+          <button class="rifa-cta-button" data-bs-toggle="modal" data-bs-target="#paymentModal">
+            COMPRAR BOLETOS
+          </button>
+        {% else %}
+          <button class="rifa-cta-button" disabled>BOLETOS AGOTADOS</button>
+        {% endif %}
+          <div class="rifa-estado-ventas">
+              <div class="rifa-progress-bar">
+                  <div class="rifa-progress" style="width: {{porcentaje}} %">{{sorteo.tickets_solds}}</div>
+              </div>
+          </div>
+      </div>
+  </div>
+ 
+    <section class="rifa-descripcion-rifa">
+      <h2>Detalles de la rifa</h2>
+      <p>{{ sorteo.description }}</p>
+      <p class="rifa-fecha-sorteo">Fecha del sorteo: {{ sorteo.date_lottery }}</p>
+      <p class="rifa-organizador">Condiciones del sorteo: {{ sorteo.conditions }}</p>
+    </section>
+ 
+    <section class="rifa-premios">
+      <h2>Premios sorteados</h2>
+      <ul class="rifa-lista-premios">
+        <li class="rifa-premio-destacado">
+          <span class="rifa-categoria-premio">1er Premio</span>
+          <span class="rifa-nombre-premio">{{ sorteo.title }}</span>
+        </li>
+      </ul>
+    </section>
+ 
+  </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paymentModalLabel">Proceso de Compra</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <form id="paymentForm" 
+              action="{% url 'crear_pago' sorteo.id %}" 
+              method="POST" 
+              data-ticket-price="{{ sorteo.ticket_price|stringformat:'f' }}">
+          {% csrf_token %}
+
+          <div id="step-1" class="payment-step">
+            <h4>Paso 1: Selecciona los Boletos</h4>
+            <div class="mb-3">
+              <label for="id_tickets_quantity" class="form-label">Cantidad de Boletos</label>
+              {{ form.tickets_quantity }}
+              <div id="error-tickets_quantity" class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div id="step-2" class="payment-step" style="display: none;">
+            <h4>Paso 2: Datos del Comprador</h4>
+            
+            <div class="mb-3">
+              <label class="form-label">Nombre Completo</label>
+              {{ form.owner_name }}
+              <div id="error-owner_name" class="invalid-feedback"></div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Cédula</label>
+              {{ form.owner_ci }}
+              <div id="error-owner_ci" class="invalid-feedback"></div>
+            </div>
+          
+            <div class="mb-3">
+              <label class="form-label">Correo Electrónico</label>
+              {{ form.owner_email }}
+              <div id="error-owner_email" class="invalid-feedback"></div>
+            </div>
+          
+            <div class="mb-3">
+              <label class="form-label">Teléfono (Ej: +584121234567)</label>
+              {{ form.owner_phone }}
+              <div id="error-owner_phone" class="invalid-feedback"></div>
+            </div>
+          </div>
+          
+          <div id="step-3" class="payment-step" style="display: none;">
+            <h4>Paso 3: Realiza tu Pago</h4>
+            <p>Datos para el Pago Móvil...</p>
+            <p><strong>Monto a Pagar:</strong> <span id="montoPagar"></span></p>
+            <hr>
+            {{ form.reference.label_tag }}
+            {{ form.reference }}
+            <div id="error-reference" class="invalid-feedback"></div>
+          </div>
+          
+          <div id="final-message"></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">Anterior</button>
+        <button type="button" class="btn btn-primary" id="nextBtn">Siguiente</button>
+        <button type="submit" class="btn btn-success" id="submitBtn" form="paymentForm" style="display: none;">Finalizar Compra</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+

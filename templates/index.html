@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="body">
-    <!-- Header -->
+  
     <header class="header">
         <div class="header-container">
             <div class="logo">
@@ -25,7 +25,6 @@
         </div>
     </header>
 
-    <!-- Sección del Premio (Visión de lo que se sortea) -->
     {%if sorteo_principal%}
     <section class="premio">
         <div class="premio-container">
@@ -35,8 +34,8 @@
             <div class="premio-info">
                 <h2>{{sorteo_principal.title}}</h2>
                 <div class="premio-botones">
-                    <button class="btn-comprar" data-sorteo-id='{{sorteo_principal.id}}' >Comprar 🎟️</button>
-                    <button class="btn-ver-boletos">Ver mis tickets comprados</button>
+                    <a  href="{% url 'detalle_sorteo' sorteo_principal.id %}" class="btn-comprar" data-sorteo-id='{{sorteo_principal.id}}' >Comprar 🎟️</a>
+                    <a class="btn-ver-boletos">Ver mis tickets comprados</a>
                     <div class="boletos-vendidos">
                         <h3>Boletos vendidos:</h3>
                         <div class="progress-bar">
@@ -50,7 +49,6 @@
     </section>
     {% endif %}
 
-    <!-- Cuenta Regresiva o Porcentaje de Boletos Vendidos -->
     <section class="estado-sorteo">
         <div class="cuenta-regresiva">
             <div>
@@ -67,8 +65,7 @@
             </div>
         </div>
     </section>
-
-    <!-- Sorteos Anteriores (Cards) -->
+    
      {% if otros_sorteos %}
     <section class="sorteos-anteriores">
         <h2>Sorteos Anteriores</h2>
@@ -103,8 +100,8 @@
             <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
     </footer>
-    <script src="static/js/main.js"></script>
     {% endblock content %}
+    <script src="static/js/main.js"></script>
     <script src="{% static 'js/modal.js' %}"></script>
 </body>
 </html>

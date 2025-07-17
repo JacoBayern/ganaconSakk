@@ -1,3 +1,4 @@
+import time
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.urls import reverse
@@ -5,6 +6,8 @@ from django.core.validators import MinLengthValidator
 from django.utils.text import slugify
 # Create your models here.
 class Sorteo(models.Model):
+    #TODO chequear por qué tickets_solds no está siendo calculado
+    #TODO chequear percentage_sold después de ver por qué TICKETS_SOLDS no se ejecuta.
     ESTATE = [
         ('B', 'BORRADOR'),
         ('A', 'ACTIVO'),
@@ -22,6 +25,7 @@ class Sorteo(models.Model):
     total_tickets = models.PositiveIntegerField(("Máxima cantidad de tickets a vender"), blank=False)
     tickets_solds = models.PositiveIntegerField(("Tickets vendidos"), editable=False, default=0)
     is_main = models.BooleanField(("Sorteo Principal"), default=False, null=True)
+    lottery_conditions = models.TextField(("Condiciones del sorteo"))
 
     class Meta:
         verbose_name = 'Sorteo'
@@ -66,7 +70,7 @@ class Ticket(models.Model):
     owner_phone = PhoneNumberField(verbose_name='Telefono del propietario', region='VE')
     sorteo = models.ForeignKey("sorteo.sorteo", verbose_name="Sorteo", on_delete=models.CASCADE, related_name='tickets', null=False, blank=False)
     payment = models.ForeignKey("sorteo.payment", verbose_name="Pago", on_delete=models.CASCADE, related_name='tickets', null=False, blank=False)
-    created_at = models.DateTimeField(("Fecha de Creación"), auto_now_add=True)
+    created_at = models.DateTimeField(("Fecha de Creación"), auto_now_add=True, editable=False)
     
     class Meta:
         verbose_name = 'Ticket'
@@ -79,6 +83,8 @@ class Ticket(models.Model):
    
 
 class Payment(models.Model):
+    #TODO signal para el update_at
+    #TODO lógica para creación de tickets
     PAYMENT_METHODS = [
         ('P', 'Pago Móvil')
         ]
@@ -94,10 +100,10 @@ class Payment(models.Model):
     method = models.CharField(("Método de Pago"), max_length=50, choices=PAYMENT_METHODS)
     reference = models.CharField(max_length=30)
     state = models.CharField(("Estado"), max_length=50, choices=PAYMENT_STATES)
-    created_at = models.DateTimeField(("Fecha de Pago"), auto_now_add=True)
-    updated_at = models.DateTimeField(("Ultima actualización"), auto_now=False)
+    created_at = models.DateTimeField(("Fecha de Pago"), auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(("Ultima actualización"), auto_now=False, null=True, editable=False)
     tickets_quantity = models.PositiveBigIntegerField()
-
+    serial = models.CharField(("Serial de la transacción"), max_length=50, editable=False, blank=True)
     sorteo = models.ForeignKey('Sorteo', on_delete=models.CASCADE, related_name='pagos')
     class Meta:
         verbose_name = 'Pago'
@@ -105,5 +111,10 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Pago {self.id} - {self.owner_name}"
+
+    def save(self, *args, **kwargs):
+        if not self.serial:
+            self.serial = f"REF-{self.owner_ci[:4]}-{int(time.time())}"
+        return super().save(*args, **kwargs)
 
    
