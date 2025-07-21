@@ -10,7 +10,8 @@ class PaymentForm(forms.ModelForm):
             'owner_ci',
             'owner_email',
             'owner_phone',
-            'reference' 
+            'reference',
+            'transferred_amount'
         ]
         
     widgets = {

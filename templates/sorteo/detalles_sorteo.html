@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block content %}
@@ -24,7 +25,7 @@
         {% endif %}
           <div class="rifa-estado-ventas">
               <div class="rifa-progress-bar">
-                  <div class="rifa-progress" style="width: {{porcentaje}} %">{{sorteo.tickets_solds}}</div>
+                  <div class="rifa-progress" style="width: {{porcentaje}}%"></div>
               </div>
           </div>
       </div>
@@ -66,54 +67,66 @@
           {% csrf_token %}
 
           <div id="step-1" class="payment-step">
-            <h4>Paso 1: Selecciona los Boletos</h4>
+            <h4 class='text-center' >Paso 1: Selecciona los Boletos</h4>
             <div class="mb-3">
+              <p>Precio por boleto:<strong> Bs.{{sorteo.ticket_price}}</strong></p>
               <label for="id_tickets_quantity" class="form-label">Cantidad de Boletos</label>
-              {{ form.tickets_quantity }}
+              {{ form.tickets_quantity | add_class:"form-control" }}
               <div id="error-tickets_quantity" class="invalid-feedback"></div>
             </div>
           </div>
 
           <div id="step-2" class="payment-step" style="display: none;">
-            <h4>Paso 2: Datos del Comprador</h4>
+            <h4 class='text-center'>Paso 2: Datos del Comprador</h4>
             
             <div class="mb-3">
-              <label class="form-label">Nombre Completo</label>
-              {{ form.owner_name }}
+              <label class="form-label text-center">Nombre Completo</label>
+              {{ form.owner_name | add_class:"form-control"   }}
               <div id="error-owner_name" class="invalid-feedback"></div>
             </div>
             
             <div class="mb-3">
               <label class="form-label">Cédula</label>
-              {{ form.owner_ci }}
+              {{ form.owner_ci | add_class:"form-control"}}
               <div id="error-owner_ci" class="invalid-feedback"></div>
             </div>
           
             <div class="mb-3">
               <label class="form-label">Correo Electrónico</label>
-              {{ form.owner_email }}
+              {{ form.owner_email | add_class:"form-control" }}
               <div id="error-owner_email" class="invalid-feedback"></div>
             </div>
           
             <div class="mb-3">
               <label class="form-label">Teléfono (Ej: +584121234567)</label>
-              {{ form.owner_phone }}
+              {{ form.owner_phone | add_class:"form-control" }}
               <div id="error-owner_phone" class="invalid-feedback"></div>
             </div>
           </div>
           
           <div id="step-3" class="payment-step" style="display: none;">
-            <h4>Paso 3: Realiza tu Pago</h4>
+            <h4 class='text-center'>Paso 3: Realiza tu Pago</h4>
             <p>Datos para el Pago Móvil...</p>
+            <p><strong>Banco: </strong>Banesco</p>
+            <p><strong>Número de Teléfono: </strong>04120561004</p>
+            <p><strong>C.I: </strong>29737018</p>
             <p><strong>Monto a Pagar:</strong> <span id="montoPagar"></span></p>
             <hr>
-            {{ form.reference.label_tag }}
-            {{ form.reference }}
-            <div id="error-reference" class="invalid-feedback"></div>
+            <div class="mb-3">
+              <label class="form-label">{{ form.reference.label_tag}}</label>
+              {{ form.reference | add_class:"form-control"}}
+              <div id="error-reference" class="invalid-feedback"></div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{form.transferred_amount.label_tag}}</label>
+              {{form.transferred_amount | add_class:"form-control"}}
+              <div id="error-transferred_amount" class="invalid-feedback"></div>
+            </div>
           </div>
           
-          <div id="final-message"></div>
         </form>
+        <div id="final-message"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">Anterior</button>
@@ -124,5 +137,3 @@
   </div>
 </div>
 {% endblock content %}
-
-

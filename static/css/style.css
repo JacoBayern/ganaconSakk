@@ -51,6 +51,10 @@ body {
     font-size: 1.8rem;
     letter-spacing: -0.5px;
 }
+.logo h1 a{
+    color: var(--text-light);
+    text-decoration: none;
+}
 
 .social-links {
     display: flex;
@@ -129,7 +133,11 @@ body {
     background-color: #eace69;
     color: var(--text-dark);
     animation: pulse 1.5s infinite;
+    text-align: center;
+    text-decoration: none;
+    font-size: larger;
 }
+
 
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
@@ -168,6 +176,8 @@ body {
 .btn-ver-boletos {
     background-color: var(--accent-color);
     color: white;
+    text-align: center;
+    text-decoration: none;
 }
 
 .btn-ver-boletos:hover {
@@ -288,7 +298,10 @@ body {
     font-size: 0.8rem;
     z-index: 2; /* Para que esté por encima de las barras */
 }
-
+.boletos-vendidos h3{
+    color: var(--text-light);
+    text-align: center;
+}
 .progress-text {
     position: absolute;
     left: 50%;
@@ -316,8 +329,14 @@ body {
 .cards-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
     gap: var(--space-lg);
     padding: var(--space-md);
+}
+.cards-container a{
+    text-decoration: none;
+    
 }
 
 /* Estilo para cada card */
@@ -350,13 +369,13 @@ body {
 .text-card{
     padding: 0 1rem;
     display: inline;
-    background-color: var(--third-color);
+    background-color: var(--secondary-color);
     color: var(--text-light);
 }
 
 /* Efecto de borde al pasar el mouse */
 .card:hover {
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--bg-light);
 }
 
 /* Responsive para móviles */
@@ -565,6 +584,7 @@ body {
     background-color: var(--primary-color);
     height: 100%;
     width: 100.03%;
+    text-align: center;
 }
 
 .rifa-progress-bar::after {
@@ -722,4 +742,58 @@ body {
 .details-background{
    background-color:  #2c3e50;
    padding: 2rem;
+}
+
+/* Animación de Éxito (Checkmark) */
+.success-animation {
+    margin: 20px auto;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: block;
+    stroke-width: 3;
+    stroke: var(--primary-color);
+    stroke-miterlimit: 10;
+    box-shadow: inset 0px 0px 0px var(--primary-color);
+    animation: fill 0.6s ease-in-out 1.2s forwards, scale 0.5s ease-in-out 2.5s both;
+    position: relative;
+    margin: 0 auto;
+}
+
+.checkmark__circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 3;
+    stroke-miterlimit: 10;
+    stroke: var(--primary-color);
+    fill: none;
+    animation: stroke 1.5s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke: var(--text-light); /* Color del check */
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) 1.8s forwards;
+}
+
+@keyframes stroke {
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes scale {
+    0%, 100% { transform: none; }
+    50% { transform: scale3d(1.1, 1.1, 1); }
+}
+
+@keyframes fill {
+    100% {
+        box-shadow: inset 0px 0px 0px 45px var(--primary-color);
+    }
 }

@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function validateStep1() {
         const quantityInput = document.getElementById('id_tickets_quantity');
         if (!quantityInput.value || parseInt(quantityInput.value) <= 0) {
-            console.log(PRECIO_POR_BOLETO)
             quantityInput.classList.add('is-invalid');
             document.getElementById('error-tickets_quantity').textContent = 'Ingrese una cantidad válida';
             return false;
@@ -35,10 +34,57 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
+    // Validación del paso 2
+    function validateStep2() {
+        let isValid = true;
+        const fields = {
+            'owner_name': { input: document.getElementById('id_owner_name'), msg: 'Por favor, ingrese un nombre válido (ej: Juan Gonzales).' },
+            'owner_ci': { input: document.getElementById('id_owner_ci'), msg: 'Por favor, ingrese su cédula.' },
+            'owner_email': { input: document.getElementById('id_owner_email'), msg: 'Por favor, ingrese un correo válido.' },
+            'owner_phone': { input: document.getElementById('id_owner_phone'), msg: 'Use un formato válido (ej: 04121234567).' }
+        };
+
+        for (const fieldName in fields) {
+            const field = fields[fieldName];
+            const errorDiv = document.getElementById(`error-${fieldName}`);
+            field.input.classList.remove('is-invalid');
+            errorDiv.textContent = '';
+
+            let fieldIsInvalid = false;
+            if (!field.input.value.trim()) {
+                fieldIsInvalid = true;
+            } else if (fieldName === 'owner_email') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(field.input.value)) fieldIsInvalid = true;
+            } else if (fieldName === 'owner_phone') {
+                // Valida los prefijos 0412, 0422, 0414, 0424, 0416, 0426 seguidos de 7 dígitos
+                const phoneRegex = /^(0412|0422|0414|0424|0416|0426)\d{7}$/;
+                if (!phoneRegex.test(field.input.value)) fieldIsInvalid = true;
+            } else if (fieldName === 'owner_ci'){
+                // Valida que la cédula sea un número de 7 a 8 dígitos
+                const ciRegex = /^\d{7,8}$/;
+                if (!ciRegex.test(field.input.value)) fieldIsInvalid = true;
+            }else if (fieldName === 'owner_name'){
+                const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+                if (!nameRegex.test(field.input.value)) fieldIsInvalid = true;
+            }               
+
+
+
+            if (fieldIsInvalid) {
+                field.input.classList.add('is-invalid');
+                errorDiv.textContent = field.msg;
+                isValid = false;
+            }
+        }
+        return isValid;
+    }
+
     // Evento para el botón Siguiente
     document.getElementById('nextBtn').addEventListener('click', function() {
         if (currentStep === 1 && !validateStep1()) return;
-        
+        if (currentStep === 2 && !validateStep2()) return;
+
         currentStep++;
         showStep(currentStep);
         
@@ -79,10 +125,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector('.modal-footer').style.display = 'none';
                 modalTitle.textContent = "¡Éxito!";
                 const finalMessage = document.getElementById('final-message');
-                finalMessage.className = 'alert alert-success';
-                finalMessage.innerHTML = data.message + '<p class="mt-2">Puedes cerrar esta ventana.</p>';
+                finalMessage.className = ''; // Limpia clases previas (ej. alert-danger)
+
+                const animationHTML = `
+                    <div class="success-animation">
+                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                        </svg>
+                    </div>
+                `;
+
+                const messageHTML = `
+                    <div class="alert alert-success text-center mt-3">
+                        <strong>${data.message}</strong>
+                        <p class="mt-2 mb-0">Puedes cerrar esta ventana.</p>
+                    </div>
+                `;
+
+                finalMessage.innerHTML = animationHTML + messageHTML;
                 // Opcional: recargar la página para ver el progreso actualizado
-                setTimeout(() => window.location.reload(), 4000);
+                setTimeout(() => window.location.reload(), 10000);
             } else {
                 // Muestra los errores junto a cada campo
                 if (data.errors) {
@@ -109,13 +172,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Inicializa mostrando el primer paso
     showStep(1);
-    
-    // Debug: Verifica que los elementos existen
-    console.log('Elementos:', {
-        nextBtn: document.getElementById('nextBtn'),
-        prevBtn: document.getElementById('prevBtn'),
-        steps: document.querySelectorAll('.payment-step')
-    });
 });

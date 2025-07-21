@@ -71,7 +71,7 @@ class Ticket(models.Model):
     sorteo = models.ForeignKey("sorteo.sorteo", verbose_name="Sorteo", on_delete=models.CASCADE, related_name='tickets', null=False, blank=False)
     payment = models.ForeignKey("sorteo.payment", verbose_name="Pago", on_delete=models.CASCADE, related_name='tickets', null=False, blank=False)
     created_at = models.DateTimeField(("Fecha de Creación"), auto_now_add=True, editable=False)
-    
+
     class Meta:
         verbose_name = 'Ticket'
         verbose_name_plural = 'Tickets'
@@ -105,6 +105,7 @@ class Payment(models.Model):
     tickets_quantity = models.PositiveBigIntegerField()
     serial = models.CharField(("Serial de la transacción"), max_length=50, editable=False, blank=True)
     sorteo = models.ForeignKey('Sorteo', on_delete=models.CASCADE, related_name='pagos')
+    transferred_amount = models.DecimalField(("Monto transferido"), max_digits=10, decimal_places=2)
     class Meta:
         verbose_name = 'Pago'
         verbose_name_plural = 'Pagos'
