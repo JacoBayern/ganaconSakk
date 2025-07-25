@@ -1,10 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-{% block content %}
-<body class="body">
 
+{% block content %}
     {%if sorteo_principal%}
     <section class="premio">
         <div class="premio-container">
@@ -14,13 +11,13 @@
             <div class="premio-info">
                 <h2>{{sorteo_principal.title}}</h2>
                 <div class="premio-botones">
-                    <a href="{% url 'detalle_sorteo' sorteo_principal.id %}" id='btn-comprar' class="btn-comprar" data-sorteo-id='{{sorteo_principal.id}}'>Comprar 🎟️</a>
-                    <a class="btn-ver-boletos">Ver mis tickets comprados</a>
+                    <a href="{% url 'detalle_sorteo' sorteo_principal.id %}" id='btn-comprar' class="btn-comprar">Comprar 🎟️</a>
+                    <button type="button" class="btn-ver-boletos" data-bs-toggle="modal" data-bs-target="#findTicketsModal">Ver mis tickets comprados</button>
                     <div class="boletos-vendidos">
                         <h3>Boletos vendidos</h3>
                         <div class="progress-bar">
                             <div class="progress" style="width: {{ sorteo_principal.percentage_sold }}%; " data-progress="{{ sorteo_principal.percentage_sold}}%;"></div>
-                            <span class="progress-text">{{Porcentaje_vendido}}</span>
+                            <span class="progress-text">{{ sorteo_principal.percentage_sold }}%</span>
                         </div>
                     </div>
                 </div>
@@ -50,26 +47,52 @@
     <section class="sorteos-anteriores">
         <h2>Sorteos Anteriores</h2>
         <div class="cards-container">
-          {% for sorteo in otros_sorteos %}
-          <a href="{% url 'detalle_sorteo' sorteo.id %}">
-
-            <div class="card" onclick="location.href='detalles_sorteo.html'">
-              <img src="/static/images/moto.jpg" alt="Sorteo 1">
-              <div class="text-card">
-                <h3>{{sorteo.title}}</h3>
-                <p>AGOTADO ° 26 june 2025</p>
-              </div>
-            </div>
-          </a>
-          {% endfor %}
+            {% for sorteo in otros_sorteos %}
+            <a href="{% url 'detalle_sorteo' sorteo.id %}" class="card-link">
+                <div class="card">
+                    <img src="{{ sorteo.prize_picture.url }}" alt="{{ sorteo.title }}">
+                    <div class="text-card">
+                        <h3>{{ sorteo.title }}</h3>
+                        <p>{{ sorteo.get_state_display|upper }} &bull; {{ sorteo.date_lottery|date:"d M Y" }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </section> 
      {% endif %}
 
     <section class="pre-footer">
         <h3>¿Qué estás espertando para participar en el próximo sorteo?</h3>
-        <button class="btn-comprar-pfooter" onclick="document.getElementById('btn-comprar').scrollIntoView({ behavior: 'smooth'});">Comprar Boletos Ahora</button>
+        <button class="btn-comprar-pfooter" onclick="document.getElementById('btn-comprar').scrollIntoView({ behavior: 'smooth' });">Comprar Boletos Ahora</button>
     </section>
 
-    {% endblock content %}
-</html>
+    <!-- Modal para Buscar Boletos -->
+    <div class="modal fade" id="findTicketsModal" tabindex="-1" aria-labelledby="findTicketsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="findTicketsModalLabel">Consulta tus Boletos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="findTicketsForm" action="{% url 'find_my_tickets' %}" method="POST" novalidate>
+              {% csrf_token %}
+              <div class="mb-3">
+                <label for="ticketIdentifier" class="form-label">Ingresa tu Cédula o Correo Electrónico</label>
+                <input type="text" class="form-control" id="ticketIdentifier" name="identifier" required placeholder="Ej: 12345678 o correo@ejemplo.com">
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Buscar mis Boletos</button>
+            </form>
+            <div id="ticketResults" class="mt-4">
+              <!-- Los resultados de la búsqueda se mostrarán aquí con JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/ticket_finder.js' %}"></script>
+{% endblock extra_js %}

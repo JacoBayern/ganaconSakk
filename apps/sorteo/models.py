@@ -4,6 +4,9 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.urls import reverse
 from django.core.validators import MinLengthValidator
 from django.utils.text import slugify
+from django.db import transaction, IntegrityError
+from django.db.models import F
+import logging
 # Create your models here.
 class Sorteo(models.Model):
     #TODO chequear por qué tickets_solds no está siendo calculado
@@ -82,6 +85,8 @@ class Ticket(models.Model):
     
    
 
+_logger = logging.getLogger(__name__)
+
 class Payment(models.Model):
     #TODO signal para el update_at
     #TODO lógica para creación de tickets
@@ -116,6 +121,66 @@ class Payment(models.Model):
     def save(self, *args, **kwargs):
         if not self.serial:
             self.serial = f"REF-{self.owner_ci[:4]}-{int(time.time())}"
-        return super().save(*args, **kwargs)
+        
+        is_new = self.pk is None
+        old_state = None
+        if not is_new:
+            # Obtenemos solo el estado para evitar una consulta completa si no es necesaria
+            old_state = Payment.objects.values_list('state', flat=True).get(pk=self.pk)
 
+        super().save(*args, **kwargs)
+
+        # --- Lógica de Verificación ---
+        # Se ejecuta solo si el estado ha cambiado a 'Verificado'
+        if not is_new and old_state != 'V' and self.state == 'V':
+            self.process_verified_payment()
+
+    def process_verified_payment(self):
+        """
+        Crea los tickets y actualiza el contador del sorteo de forma atómica.
+        Se ejecuta cuando un pago es verificado.
+        """
+        try:
+            with transaction.atomic():
+                # 1. Bloquear el sorteo para evitar race conditions y obtener el estado más reciente.
+                sorteo = Sorteo.objects.select_for_update().get(pk=self.sorteo.pk)
+
+                # 2. Validar que haya suficientes boletos disponibles.
+                if (sorteo.tickets_solds + self.tickets_quantity) > sorteo.total_tickets:
+                    self.state = 'C' # Marcar como Cancelado
+                    self.save(update_fields=['state']) # Usar update_fields para evitar recursión.
+                    return
+
+                last_ticket = sorteo.tickets.order_by('-serial').first()
+                start_serial = (last_ticket.serial + 1) if last_ticket else 1
+
+                # 4. Preparar los boletos para la creación en lote.
+                tickets_to_create = [
+                    Ticket(
+                        serial=start_serial + i,
+                        owner_name=self.owner_name,
+                        owner_ci=self.owner_ci,
+                        owner_email=self.owner_email,
+                        owner_phone=self.owner_phone,
+                        sorteo=sorteo,
+                        payment=self
+                    ) for i in range(self.tickets_quantity)
+                ]
+                
+                # 5. Crear los boletos en una sola consulta (muy eficiente).
+                Ticket.objects.bulk_create(tickets_to_create)
+
+                # 6. Actualizar el contador de boletos vendidos en el sorteo de forma atómica.
+                sorteo.tickets_solds = F('tickets_solds') + self.tickets_quantity
+                sorteo.save(update_fields=['tickets_solds'])
+                payment = Payment.objects.select_for_update().get(pk=self.pk)
+                payment.state = 'V'
+                payment.save(update_fields=['state'])
+                _logger.info(f"Pago {self.id} verificado. {self.tickets_quantity} boletos creados para el sorteo {sorteo.id}.")
+
+        except Exception as e:
+            _logger.error(f"Error inesperado al procesar pago {self.id}: {e}")
+            return False
+        
+        return True
    

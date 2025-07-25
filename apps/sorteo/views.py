@@ -1,9 +1,16 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Sorteo, Payment
+from django.shortcuts import redirect, render, get_object_or_404
+from .models import Sorteo, Payment, Ticket
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .forms import PaymentForm
+from django.core.paginator import Paginator
+from django.db.models import Q, Case, When, Value
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.messages import error, success
 import logging
+
 _logger = logging.getLogger()
 
 def home(request):
@@ -68,4 +75,100 @@ def create_payment(request, sorteo_id):
         return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones!'})
     else:
         return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
-        
+
+@login_required
+def payment_list(request):
+    """
+    List all payments with search and pagination.
+    """
+    query = request.GET.get('q', '')
+    state_filter = request.GET.get('state', '')
+
+    # Ordenar por estado: 'En Espera' primero, luego el resto por fecha.
+    payment_list = Payment.objects.annotate(
+        state_order=Case(
+            When(state='E', then=Value(1)),
+            When(state='V', then=Value(2)),
+            When(state='C', then=Value(3)),
+            default=Value(4)
+        )
+    ).order_by('state_order', 'created_at')
+
+    # Aplicar filtro de estado si se proporciona uno
+    if state_filter and state_filter in ['E', 'V', 'C']:
+        payment_list = payment_list.filter(state=state_filter)
+    
+    if query:
+        payment_list = payment_list.filter(
+            Q(owner_name__icontains=query) |
+            Q(owner_ci__icontains=query) |
+            Q(owner_email__icontains=query) |
+            Q(reference__icontains=query) |
+            Q(serial__icontains=query)
+        )
+
+    paginator = Paginator(payment_list, 15)  # Muestra 15 pagos por página
+    page_number = request.GET.get('page')
+    payments_page = paginator.get_page(page_number)
+
+    context = {
+        'payments': payments_page,
+        'query': query,
+        'state_filter': state_filter,
+    }
+
+    return render(request, 'payment/payment_list.html', context)
+
+def login(request):
+    """                 
+    Login view
+    """
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            auth_login(request, user)
+            return redirect('payment_list')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'administration/login.html', {'form': form})
+
+@login_required
+@require_http_methods(["POST"])
+def verify_payment(request, payment_id):
+    """
+    Verify a payment
+    """
+    payment = get_object_or_404(Payment, pk=payment_id)
+    result = payment.process_verified_payment()
+    if result:
+        return JsonResponse({'status': 'success', 'message': 'Pago verificado y boletos creados exitosamente!'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Error al verificar el pago.'}, status=500)
+
+    
+@require_http_methods(["POST"])
+def find_my_tickets(request):
+    """
+    Finds tickets by owner's CI or email.
+    """
+    identifier = request.POST.get('identifier', '').strip()
+
+    if not identifier:
+        return JsonResponse({'status': 'error', 'message': 'Por favor, ingrese su correo o cédula.'}, status=400)
+
+    tickets = Ticket.objects.filter(
+        Q(owner_email__iexact=identifier) | Q(owner_ci__iexact=identifier)
+    ).select_related('sorteo').order_by('-created_at')
+
+    if not tickets.exists():
+        return JsonResponse({'status': 'not_found', 'message': 'No se encontraron boletos con los datos proporcionados.'})
+
+    tickets_data = [{
+        'serial': ticket.serial,
+        'sorteo_title': ticket.sorteo.title,
+        'created_at': ticket.created_at.strftime('%d/%m/%Y %H:%M'),
+        'owner_name': ticket.owner_name,
+    } for ticket in tickets]
+
+    return JsonResponse({'status': 'success', 'tickets': tickets_data})

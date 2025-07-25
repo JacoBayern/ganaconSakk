@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{%load static%}
+{%block content%}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="m-0">Lista de Pagos</h1>
+        <a href="{% url 'admin:index' %}" class="btn btn-secondary">Ir al Admin de Django</a>
+    </div>
+
+    <!-- Barra de Búsqueda -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form method="get" action="{% url 'payment_list' %}">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="q" placeholder="Buscar por nombre, cédula, email, referencia..." value="{{ query }}">
+                    <button class="btn btn-primary" type="submit">Buscar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtros de Estado -->
+    <div class="mb-3">
+        <a href="{% url 'payment_list' %}?q={{ query }}" class="btn {% if not state_filter %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">Todos</a>
+        <a href="?state=E&q={{ query }}" class="btn {% if state_filter == 'E' %}btn-warning{% else %}btn-outline-warning{% endif %} btn-sm">En Espera</a>
+        <a href="?state=V&q={{ query }}" class="btn {% if state_filter == 'V' %}btn-success{% else %}btn-outline-success{% endif %} btn-sm">Verificados</a>
+        <a href="?state=C&q={{ query }}" class="btn {% if state_filter == 'C' %}btn-danger{% else %}btn-outline-danger{% endif %} btn-sm">Cancelados</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha de Pago</th>
+                            <th>Propietario</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.id }}</td>
+                            <td>{{ payment.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {{ payment.owner_name }}<br>
+                                <small class="text-muted">{{ payment.owner_ci }}</small>
+                            </td>
+                            <td>${{ payment.transferred_amount }}</td>
+                            <td>
+                                {% if payment.state == 'E' %}
+                                    <span class="badge bg-warning text-dark">En Espera</span>
+                                {% elif payment.state == 'V' %}
+                                    <span class="badge bg-success">Verificado</span>
+                                {% elif payment.state == 'C' %}
+                                    <span class="badge bg-danger">Cancelado</span>
+                                {% else %}
+                                    {{ payment.get_state_display }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.state == 'E' %}
+                                <form action="{% url 'verify_payment' payment.id %}" method="POST" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">Verificar</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay pagos que coincidan con su búsqueda.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {% if payments.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if payments.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&q={{ query }}&state={{ state_filter }}">&laquo;&laquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ payments.previous_page_number }}&q={{ query }}&state={{ state_filter }}">&laquo;</a></li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a></li>
+            {% endif %}
+
+            {% for i in payments.paginator.page_range %}
+                {% if payments.number == i %}
+                    <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                {% elif i > payments.number|add:'-3' and i < payments.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ i }}&q={{ query }}&state={{ state_filter }}">{{ i }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if payments.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ payments.next_page_number }}&q={{ query }}&state={{ state_filter }}">&raquo;</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ payments.paginator.num_pages }}&q={{ query }}&state={{ state_filter }}">&raquo;&raquo;</a></li>
+            {% else %}
+                <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{%endblock content%}

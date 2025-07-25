@@ -9,7 +9,7 @@
     --space-sm: 0.5rem;
     --space-md: 1rem;
     --space-lg: 2rem;
-    --space-xl: 5rem:
+    --space-xl: 5rem;
 }
 
 body {
@@ -131,7 +131,7 @@ body {
 
 .btn-comprar {
     background-color: #eace69;
-    color: var(--text-dark);
+    color: var(--secondary-color);
     animation: pulse 1.5s infinite;
     text-align: center;
     text-decoration: none;
@@ -281,7 +281,6 @@ body {
     background-color: #eace69;
     height: 100%;
     transition: width 0.5s ease;
-    /* Eliminamos flex del .progress */
 }
 
 /* Texto absolutamente centrado */
@@ -371,6 +370,17 @@ body {
     display: inline;
     background-color: var(--secondary-color);
     color: var(--text-light);
+    font-size: 1rem;
+}
+
+.text-card h3{
+    font-size: 1.2rem;
+}
+
+/* Espacio extra al final de la página de login */
+.login-page-container {
+    padding-top: 10rem; /* 5rem de espacio superior */
+    padding-bottom: 17rem; /* 5rem de espacio inferior */
 }
 
 /* Efecto de borde al pasar el mouse */
@@ -581,13 +591,14 @@ body {
 }
 
 .rifa-progress {
-    background-color: var(--primary-color);
+    background-color: #eace69;
     height: 100%;
     width: 100.03%;
     text-align: center;
 }
 
 .rifa-progress-bar::after {
+    content: attr(data-progress); /* Tomará el valor de data-progress */
     position: absolute;
     left: 0;
     right: 0;
@@ -597,8 +608,19 @@ body {
     color: var(--text-dark);
     font-weight: bold;
     font-size: 0.8rem;
+    z-index: 2; /* Para que esté por encima de las barras */
+}
+
+.rifa-progress-text{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-dark);
+    font-weight: bold;
     z-index: 2;
 }
+
 
 .rifa-descripcion-rifa {
     margin-bottom: var(--space-lg);
@@ -680,8 +702,8 @@ body {
 .rifa-cta-button {
     width: 100%;
     padding: var(--space-md);
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #eace69;
+    color: var(--text-dark);
     border: none;
     border-radius: 5px;
     font-size: 1.1rem;
@@ -689,12 +711,13 @@ body {
     cursor: pointer;
     transition: all 0.3s;
     margin-top: var(--space-md);
+    animation: pulse 1.5s infinite;
 }
 
 
 
 .rifa-cta-button:hover:not(:disabled) {
-    background-color: var(--third-color);
+    background-color: #c49f3b;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -796,4 +819,13 @@ body {
     100% {
         box-shadow: inset 0px 0px 0px 45px var(--primary-color);
     }
+}
+
+.login-card-body {
+    background-color: var(--bg-light);
+}
+
+.login-card-footer{
+    background-color: var(--secondary-color);
+    color: var(--text-light);
 }

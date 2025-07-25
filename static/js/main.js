@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentStep === 3) {
             const quantity = document.getElementById('id_tickets_quantity').value;
             const total = (quantity * PRECIO_POR_BOLETO).toFixed(2);
-            document.getElementById('montoPagar').textContent = `$${total}`;
+            document.getElementById('montoPagar').textContent = `Bs.${total}`;
         }
     });
     
