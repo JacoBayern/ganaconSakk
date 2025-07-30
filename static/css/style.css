@@ -829,3 +829,12 @@ body {
     background-color: var(--secondary-color);
     color: var(--text-light);
 }
+
+.sorteo-header{
+    background-color: var(--secondary-color);
+    color: var(--text-light);
+}
+
+.sorteo-body{
+    background-color: var(--bg-light);
+}

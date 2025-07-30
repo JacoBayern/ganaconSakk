@@ -45,7 +45,7 @@
      
     {% if otros_sorteos %}
     <section class="sorteos-anteriores">
-        <h2>Sorteos Anteriores</h2>
+        <h2>Otros Sorteos</h2>
         <div class="cards-container">
             {% for sorteo in otros_sorteos %}
             <a href="{% url 'detalle_sorteo' sorteo.id %}" class="card-link">
@@ -59,6 +59,27 @@
             </a>
             {% endfor %}
         </div>
+
+        <!-- Paginación -->
+        {% if otros_sorteos.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if otros_sorteos.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">&laquo; Primera</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ otros_sorteos.previous_page_number }}">Anterior</a></li>
+                {% endif %}
+                
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">Página {{ otros_sorteos.number }} de {{ otros_sorteos.paginator.num_pages }}</span>
+                </li>
+
+                {% if otros_sorteos.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ otros_sorteos.next_page_number }}">Siguiente</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ otros_sorteos.paginator.num_pages }}">Última &raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </section> 
      {% endif %}
 
@@ -67,7 +88,6 @@
         <button class="btn-comprar-pfooter" onclick="document.getElementById('btn-comprar').scrollIntoView({ behavior: 'smooth' });">Comprar Boletos Ahora</button>
     </section>
 
-    <!-- Modal para Buscar Boletos -->
     <div class="modal fade" id="findTicketsModal" tabindex="-1" aria-labelledby="findTicketsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -85,7 +105,7 @@
               <button type="submit" class="btn btn-primary w-100">Buscar mis Boletos</button>
             </form>
             <div id="ticketResults" class="mt-4">
-              <!-- Los resultados de la búsqueda se mostrarán aquí con JavaScript -->
+
             </div>
           </div>
         </div>

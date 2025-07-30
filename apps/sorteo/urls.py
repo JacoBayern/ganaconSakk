@@ -8,4 +8,9 @@ urlpatterns = [
     path('login', views.login, name='login'), 
     path('payment/<int:payment_id>/verify', views.verify_payment, name='verify_payment'),
     path('find-my-tickets/', views.find_my_tickets, name='find_my_tickets'),
+    path('sorteo/sorteo_list', views.sorteo_list, name='sorteo_list'),
+    path('sorteo/create/', views.sorteo_edit, name='sorteo_create'),
+    path('sorteo/<int:sorteo_id>/edit/', views.sorteo_edit, name='sorteo_edit'),
+    path('logout', views.logout_view, name='logout'),
+    path('sorteo/<int:sorteo_id>/tickets', views.ticket_list, name='ticket_list'),
 ]   

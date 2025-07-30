@@ -2,27 +2,33 @@ from django.shortcuts import redirect, render, get_object_or_404
 from .models import Sorteo, Payment, Ticket
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .forms import PaymentForm
-from django.core.paginator import Paginator
+from .forms import PaymentForm, SorteoForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Case, When, Value
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib.messages import error, success
+from django.contrib import messages
 import logging
+from .services import register_payment_api
 
 _logger = logging.getLogger()
 
 def home(request):
     sorteo_principal = Sorteo.objects.filter(is_main=True).first()
-    otros_sorteos = Sorteo.objects.exclude(is_main=True).order_by('-date_lottery')[:6]
-    porcentaje_vendido = sorteo_principal.percentage_sold()
+
+    # Obtener la lista de otros sorteos y paginarla
+    otros_sorteos_list = Sorteo.objects.exclude(is_main=True).filter(state__in=['A', 'F']).order_by('-date_lottery')
+    paginator = Paginator(otros_sorteos_list, 6) # 6 sorteos por página
+    page_number = request.GET.get('page')
+    otros_sorteos_page = paginator.get_page(page_number)
+
+    porcentaje_vendido = sorteo_principal.percentage_sold() if sorteo_principal else 0
     context ={
         'sorteo_principal': sorteo_principal,
-        'otros_sorteos': otros_sorteos,
+        'otros_sorteos': otros_sorteos_page,
         'porcentaje_vendido': porcentaje_vendido
     }
-    _logger.warning(otros_sorteos)
     return render(request, 'index.html', context)
 
 def details(request, sorteo_id):
@@ -72,6 +78,11 @@ def create_payment(request, sorteo_id):
         #TODO generar aquí si es necesario,el serial del PAGO ej:
         # pago.serial = generar_un_serial_unico()
         pago.save()
+
+        success, api_response = register_payment_api(pago)
+        if not success:
+            _logger.error(f"Fallo al registrar el pago {pago.id} en la API externa. Se necesitará registro manual o automático.")
+
         return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones!'})
     else:
         return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
@@ -133,6 +144,14 @@ def login(request):
         form = AuthenticationForm()
     return render(request, 'administration/login.html', {'form': form})
 
+def logout_view(request):
+    """
+    Logout view
+    """
+    auth_logout(request)
+    return redirect('home')
+
+
 @login_required
 @require_http_methods(["POST"])
 def verify_payment(request, payment_id):
@@ -172,3 +191,92 @@ def find_my_tickets(request):
     } for ticket in tickets]
 
     return JsonResponse({'status': 'success', 'tickets': tickets_data})
+
+@login_required
+def sorteo_list(request):
+    """
+    Lista todos los sorteos con búsqueda, filtro y paginación.
+    """
+    query = request.GET.get('q', '')
+    state_filter = request.GET.get('state', '')
+
+    sorteo_list = Sorteo.objects.all().order_by('-is_main', '-date_lottery')
+
+    if state_filter:
+        sorteo_list = sorteo_list.filter(state=state_filter)
+
+    if query:
+        sorteo_list = sorteo_list.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query)
+        )
+
+    paginator = Paginator(sorteo_list, 10)  # 10 sorteos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'sorteos': page_obj,
+        'query': query,
+        'state_filter': state_filter,
+        'states': Sorteo.ESTATE,
+    }
+    return render(request, 'sorteo/sorteo_list.html', context)
+
+@login_required
+def ticket_list(request, sorteo_id):
+    """
+    Lista los tickets de un sorteo específico, con búsqueda y paginación.
+    """
+    query = request.GET.get('q', '')
+
+    sorteo = get_object_or_404(Sorteo, pk=sorteo_id)
+
+    ticket_list = Ticket.objects.filter(sorteo=sorteo).order_by('serial')
+
+    if query:
+        ticket_list = ticket_list.filter(
+            Q(owner_name__icontains=query) |
+            Q(owner_ci__icontains=query) |
+            Q(owner_email__icontains=query) |
+            Q(serial__iexact=query)
+        )
+
+    paginator = Paginator(ticket_list, 20) # 20 tickets por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'sorteo': sorteo,
+        'tickets': page_obj,
+        'query': query,
+    }
+    return render(request, 'ticket/ticket_list.html', context)
+
+@login_required
+def sorteo_edit(request, sorteo_id=None):
+    """
+    Crea o edita un sorteo.
+    """
+    if sorteo_id:
+        # Editar un sorteo existente
+        instance = get_object_or_404(Sorteo, pk=sorteo_id)
+        page_title = f'Editando Sorteo: {instance.title}'
+    else:
+        # Crear un nuevo sorteo
+        instance = None
+        page_title = 'Crear Nuevo Sorteo'
+
+    if request.method == 'POST':
+        form = SorteoForm(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            sorteo = form.save()
+            messages.success(request, f'Sorteo "{sorteo.title}" guardado exitosamente.')
+            return redirect('sorteo_list')
+        else:
+            messages.error(request, 'Por favor, corrige los errores en el formulario.')
+    else:
+        form = SorteoForm(instance=instance)
+
+    context = {'form': form, 'page_title': page_title}
+    return render(request, 'sorteo/sorteo_form.html', context)

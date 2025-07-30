@@ -1,21 +1,22 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const findTicketsForm = document.getElementById('findTicketsForm');
-    const ticketResultsContainer = document.getElementById('ticketResults');
-    const findTicketsModal = document.getElementById('findTicketsModal');
+    const form = document.getElementById('findTicketsForm');
+    const resultsDiv = document.getElementById('ticketResults');
+    
+    if (!form) return;
 
-    if (!findTicketsForm) return;
+    const submitButton = form.querySelector('button[type="submit"]');
 
-    findTicketsForm.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const submitBtn = findTicketsForm.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Buscando...';
-        ticketResultsContainer.innerHTML = ''; // Limpiar resultados anteriores
 
-        const formData = new FormData(findTicketsForm);
+        const originalButtonText = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Buscando...';
+        resultsDiv.innerHTML = ''; // Limpiar resultados anteriores
 
-        fetch(findTicketsForm.action, {
+        const formData = new FormData(form);
+
+        fetch(form.action, {
             method: 'POST',
             body: formData,
             headers: {
@@ -26,40 +27,33 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                let resultsHtml = `<h5>Boletos Encontrados para ${data.tickets[0].owner_name}:</h5><ul class="list-group">`;
+                let ticketsHTML = '<h4 class="mb-3">Tus Boletos Encontrados</h4>';
+                ticketsHTML += '<ul class="list-group">';
                 data.tickets.forEach(ticket => {
-                    resultsHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong class="d-block">Sorteo: ${ticket.sorteo_title}</strong>
-                                <small class="text-muted">Comprado el: ${ticket.created_at}</small>
+                    ticketsHTML += `
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">Boleto #${ticket.serial}</h5>
+                                <small class="text-muted">${ticket.created_at}</small>
                             </div>
-                            <span class="badge bg-success rounded-pill fs-6">Boleto #${ticket.serial}</span>
+                            <p class="mb-1"><strong>Sorteo:</strong> ${ticket.sorteo_title}</p>
+                            <small><strong>Comprador:</strong> ${ticket.owner_name}</small>
                         </li>
                     `;
                 });
-                resultsHtml += '</ul>';
-                ticketResultsContainer.innerHTML = resultsHtml;
+                ticketsHTML += '</ul>';
+                resultsDiv.innerHTML = ticketsHTML;
             } else {
-                // Maneja los estados 'not_found' y 'error'
-                ticketResultsContainer.innerHTML = `<div class="alert alert-warning text-center">${data.message}</div>`;
+                resultsDiv.innerHTML = `<div class="alert alert-warning" role="alert">${data.message}</div>`;
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            ticketResultsContainer.innerHTML = '<div class="alert alert-danger text-center">Ocurrió un error inesperado. Por favor, intente de nuevo.</div>';
+            resultsDiv.innerHTML = '<div class="alert alert-danger" role="alert">Ocurrió un error al realizar la búsqueda. Por favor, inténtalo de nuevo.</div>';
         })
         .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalBtnText;
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
         });
     });
-
-    // Opcional: Limpiar los resultados cuando se cierra el modal para una mejor UX
-    if (findTicketsModal) {
-        findTicketsModal.addEventListener('hidden.bs.modal', function () {
-            ticketResultsContainer.innerHTML = '';
-            findTicketsForm.reset();
-        });
-    }
 });

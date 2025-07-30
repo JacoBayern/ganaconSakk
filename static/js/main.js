@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 3. Actualiza los botones
         document.getElementById('prevBtn').style.display = step > 1 ? 'block' : 'none';
-        document.getElementById('nextBtn').style.display = step < 3 ? 'block' : 'none';
-        document.getElementById('submitBtn').style.display = step === 3 ? 'block' : 'none';
+        document.getElementById('nextBtn').style.display = step < 4 ? 'block' : 'none';
+        document.getElementById('submitBtn').style.display = step === 4 ? 'block' : 'none';
     }
     
     // Validación del paso 1
@@ -80,19 +80,50 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
+    // Validación del paso 4 (antes paso 3)
+    function validateStep4() {
+        let isValid = true;
+        const fields = {
+            'bank_of_transfer': { input: document.getElementById('id_bank_of_transfer'), msg: 'Seleccione el banco desde donde transfirió.' },
+            'reference': { input: document.getElementById('id_reference'), msg: 'Ingrese el número de referencia.' },
+            'transferred_date': { input: document.getElementById('id_transferred_date'), msg: 'Seleccione la fecha de la transferencia.' },
+            'transferred_amount': { input: document.getElementById('id_transferred_amount'), msg: 'Ingrese el monto transferido.' }
+        };
+
+        for (const fieldName in fields) {
+            const field = fields[fieldName];
+            const errorDiv = document.getElementById(`error-${fieldName}`);
+            field.input.classList.remove('is-invalid');
+            errorDiv.textContent = '';
+
+            if (!field.input.value.trim()) {
+                field.input.classList.add('is-invalid');
+                errorDiv.textContent = field.msg;
+                isValid = false;
+            }
+        }
+        return isValid;
+    }
+
     // Evento para el botón Siguiente
     document.getElementById('nextBtn').addEventListener('click', function() {
         if (currentStep === 1 && !validateStep1()) return;
         if (currentStep === 2 && !validateStep2()) return;
-
+        
         currentStep++;
         showStep(currentStep);
         
-        // Calcula el monto al llegar al paso 3
+        // Muestra el monto a pagar en el paso 3
         if (currentStep === 3) {
             const quantity = document.getElementById('id_tickets_quantity').value;
             const total = (quantity * PRECIO_POR_BOLETO).toFixed(2);
             document.getElementById('montoPagar').textContent = `Bs.${total}`;
+        }
+        // Rellena el monto a pagar en el paso 4 para facilitar al usuario
+        if (currentStep === 4) {
+            const quantity = document.getElementById('id_tickets_quantity').value;
+            const total = (quantity * PRECIO_POR_BOLETO).toFixed(2);
+            document.getElementById('id_transferred_amount').value = total;
         }
     });
     
@@ -105,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evento para el botón Finalizar (submit)
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+
+        if (currentStep === 4 && !validateStep4()) return;
+
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';

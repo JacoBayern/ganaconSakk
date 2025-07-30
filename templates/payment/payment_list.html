@@ -38,6 +38,7 @@
                             <th>Propietario</th>
                             <th>Monto</th>
                             <th>Estado</th>
+                            <th>Serial</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -62,6 +63,7 @@
                                     {{ payment.get_state_display }}
                                 {% endif %}
                             </td>
+                            <td>{{ payment.serial }}</td>
                             <td>
                                 {% if payment.state == 'E' %}
                                 <form action="{% url 'verify_payment' payment.id %}" method="POST" class="d-inline">
