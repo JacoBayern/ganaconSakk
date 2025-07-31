@@ -3,7 +3,7 @@
 {%block content%}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center my-4">
-        <h1 class="m-0">Lista de Pagos</h1>
+        <h1 class="m-0 text-light">Lista de Pagos</h1>
         <a href="{% url 'admin:index' %}" class="btn btn-secondary">Ir al Admin de Django</a>
     </div>
 
@@ -39,7 +39,12 @@
                             <th>Monto</th>
                             <th>Estado</th>
                             <th>Serial</th>
+                            <th>Verificación Respuesta</th>
+                            <th>Referencia</th>
+                            <th>Banco</th>
+                            <th>Cantidad de tickets</th>
                             <th>Acciones</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -51,7 +56,7 @@
                                 {{ payment.owner_name }}<br>
                                 <small class="text-muted">{{ payment.owner_ci }}</small>
                             </td>
-                            <td>${{ payment.transferred_amount }}</td>
+                            <td>Bs.{{ payment.transferred_amount }}</td>
                             <td>
                                 {% if payment.state == 'E' %}
                                     <span class="badge bg-warning text-dark">En Espera</span>
@@ -64,12 +69,15 @@
                                 {% endif %}
                             </td>
                             <td>{{ payment.serial }}</td>
+                            <td>{{ payment.payment_verification_note }}</td>
+                            <td>{{ payment.reference }}</td>
+                            <td>{{ payment.bank_of_transfer }}</td>
+                            <td>{{ payment.tickets_quantity }}</td>
                             <td>
                                 {% if payment.state == 'E' %}
-                                <form action="{% url 'verify_payment' payment.id %}" method="POST" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success">Verificar</button>
-                                </form>
+                                    <button onclick="verifyPayment({{ payment.id }})" class="btn btn-sm btn-success"
+                                    data-csrf-token="{{ csrf_token }}"
+                                    >Verificar</button>
                                 {% endif %}
                             </td>
                         </tr>
@@ -114,3 +122,6 @@
     {% endif %}
 </div>
 {%endblock content%}
+{% block extra_js %}
+<script src="{% static 'js/payment_list.js' %}"></script>
+{% endblock extra_js %}

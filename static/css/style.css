@@ -1,7 +1,9 @@
 :root {
-    --primary-color: #4CAF50;
+    /* --primary-color: #4CAF50; */
+    /* --primary-color: #eace69; */
+    --primary-color: #2c3e50;
     --secondary-color: #2c3e50;
-    --third-color: #45a049; 
+    --third-color: #eace69; 
     --accent-color: #3498db;
     --text-dark: #333;
     --text-light: white;
@@ -30,7 +32,6 @@ body {
 /* Header Styles - Mejorado */
 .header {
     background-color: var(--primary-color);
-    color: var(--text-light);
     padding: var(--space-md) 0;
     position: relative;
     z-index: 10;
@@ -75,7 +76,7 @@ body {
 
 /* Sección del premio - Mejor alineación */
 .premio {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
     padding: var(--space-lg) 0;
     margin: 0 auto;
 }
@@ -340,7 +341,7 @@ body {
 
 /* Estilo para cada card */
 .card {
-    background: white;
+    background: var(--primary-color);
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -349,7 +350,6 @@ body {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color:  var(--third-color);
 }
 
 .card:hover {
@@ -362,7 +362,6 @@ body {
     width: 100%;
     height: 250px;
     object-fit: cover ;
-    border-bottom: 1px solid  var(--third-color); /* Línea separadora */
 }
 
 .text-card{
@@ -371,6 +370,7 @@ body {
     background-color: var(--secondary-color);
     color: var(--text-light);
     font-size: 1rem;
+    margin-top: 1rem;
 }
 
 .text-card h3{
@@ -383,10 +383,6 @@ body {
     padding-bottom: 17rem; /* 5rem de espacio inferior */
 }
 
-/* Efecto de borde al pasar el mouse */
-.card:hover {
-    border: 1px solid var(--bg-light);
-}
 
 /* Responsive para móviles */
 @media (max-width: 768px) {

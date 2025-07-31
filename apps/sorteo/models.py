@@ -149,6 +149,7 @@ class Payment(models.Model):
     type_CI = models.CharField(("Tipo de cédula"), max_length=1, choices=CI_TYPE_CHOICES, default='V')
     bank_of_transfer = models.CharField(("Banco de transferencia"), max_length=4, choices=BANK_CHOICES)
     payment_verification_note = models.TextField(("Nota de verificación del pago"), blank=True, null=True)
+    is_payment_registered = models.BooleanField(("Pago registrado"), default=False, editable=False)
     class Meta:
         verbose_name = 'Pago'
         verbose_name_plural = 'Pagos'
@@ -174,100 +175,128 @@ class Payment(models.Model):
         """
         try:
             # Registrar el pago en la API externa
-            success, response = register_payment_api(self)
-    
-            if not success:
-                # Si la API devuelve un error, marcar el pago como "En Espera" y registrar el error
-                self.state = 'E'  # En Espera
-                self.save(update_fields=['state'])
-                _logger.error(f"Error al registrar el pago {self.id} en la API: {response.get('descripcion')}")
-                return False
-    
+            if not self.is_payment_registered:
+                success, response = register_payment_api(self)
+                if not success:
+                    # Si la API devuelve un error, marcar el pago como "En Espera" y registrar el error
+                    self.state = 'E'  # En Espera
+                    self.payment_verification_note = f"Error al registrar el pago: {response.get('descripcion')}"
+                    self.save(update_fields=['state', 'payment_verification_note'])
+                    _logger.error(f"Error al registrar el pago {self.id} en la API: {response.get('descripcion')}")
+                    return False, response.get('descripcion')
+
             # Procesar la respuesta de la API
             codigo_respuesta = response.get("codigo_respuesta")
             descripcion = response.get("descripcion")
             _logger.info(f"Respuesta de la API para el pago {self.id}: {codigo_respuesta} - {descripcion}")
-    
             if codigo_respuesta in ["PAGO_INGRESADO", "IDPAGO_YA_REGISTRADO"]:
                 # Si el pago fue ingresado correctamente, verificar su estado
+                self.is_payment_registered = True
+                _logger.warning('HOLAAAAAA ENTRÉ ACÁ')
+                self.save(update_fields=['is_payment_registered'])
+                time.sleep(5)
+                _logger.warning('HOLAAAAAA ENTRÉ ACÁ OTRAVEEEEEE')
                 status_response = get_payment_status_api(self)
                 status_codigo = status_response.get("codigo_respuesta")
                 status_descripcion = status_response.get("descripcion")
-    
+                _logger.warning(f'STATUUUUUUUUUUUS: {status_codigo}')
+                estatus = status_response.get("estatus")
+                _logger.warning(f'ESTATUS: {estatus}')
                 if status_codigo == "OK":
-                    estatus = status_response.get("codigo_respuesta")
                     if estatus == "APROBADO":
-                        # Crear los tickets si el pago es aprobado
-                        with transaction.atomic():
-                            sorteo = Sorteo.objects.select_for_update().get(pk=self.sorteo.pk)
-    
-                            # Validar que haya suficientes boletos disponibles
-                            if (sorteo.tickets_solds + self.tickets_quantity) > sorteo.total_tickets:
-                                self.state = 'C'  # Cancelado
-                                self.save(update_fields=['state'])
-                                return False
-    
-                            last_ticket = sorteo.tickets.order_by('-serial').first()
-                            start_serial = (last_ticket.serial + 1) if last_ticket else 1
-    
-                            # Crear los boletos en lote
-                            tickets_to_create = [
-                                Ticket(
-                                    serial=start_serial + i,
-                                    owner_name=self.owner_name,
-                                    owner_ci=self.owner_ci,
-                                    owner_email=self.owner_email,
-                                    owner_phone=self.owner_phone,
-                                    sorteo=sorteo,
-                                    payment=self
-                                ) for i in range(self.tickets_quantity)
-                            ]
-                            Ticket.objects.bulk_create(tickets_to_create)
-    
-                            # Actualizar el contador de boletos vendidos
-                            sorteo.tickets_solds = F('tickets_solds') + self.tickets_quantity
-                            sorteo.save(update_fields=['tickets_solds'])
-    
-                            # Marcar el pago como verificado
-                            self.state = 'V'
-                            self.save(update_fields=['state'])
-                            _logger.info(f"Pago {self.id} verificado. {self.tickets_quantity} boletos creados para el sorteo {sorteo.id}.")
-                            return True
-    
+                        self.create_tickets()
+                        return True, "Pago aprobado y boletos creados exitosamente."
                     elif estatus == "RECHAZADO":
                         # Si el pago es rechazado, marcarlo como cancelado
                         self.state = 'C'  # Cancelado
-                        self.save(update_fields=['state'])
+                        self.payment_verification_note = f"Pago rechazado: {status_descripcion}"
+                        self.save(update_fields=['state', 'payment_verification_note'])
                         _logger.warning(f"Pago {self.id} rechazado: {status_descripcion}")
-                        return False
-    
+                        return False, status_descripcion
                     elif estatus == "EN PROCESO":
                         # Si el pago está en proceso, dejarlo en estado "En Espera"
                         self.state = 'E'  # En Espera
-                        self.save(update_fields=['state'])
+                        self.payment_verification_note = f"Pago En proceso de verificación: {status_descripcion}"
+                        self.save(update_fields=['state', 'payment_verification_note'])
                         _logger.info(f"Pago {self.id} en proceso de verificación: {status_descripcion}")
-                        return False
-    
-                else:
-                    # Si la verificación falla, marcar el pago como "En Espera"
+                        return True, status_descripcion
+                elif status_codigo == 'ID_PAGO_NO_REGISTRADO':
                     self.state = 'E'  # En Espera
-                    self.save(update_fields=['state'])
-                    _logger.error(f"Error al verificar el estado del pago {self.id}: {status_descripcion}")
-                    return False
+                    self.payment_verification_note = f"Pago no registrado: {status_descripcion}"
+                    self.save(update_fields=['state', 'payment_verification_note'])
+                    _logger.error(f"Pago no registrado {self.id}: {status_descripcion}")
+                    return False, 'Error al verificar el pago: Contacte a soporte'
+                elif status_codigo == 'USUARIO_NO_VALIDO':
+                    self.state = 'E'  # En Espera
+                    self.payment_verification_note = f"Usuario no válido: {status_descripcion}"
+                    self.save(update_fields=['state', 'payment_verification_note'])
+                    _logger.error(f"Pago no registrado {self.id}: {status_descripcion}")
+                    return False, 'Error al verificar el pago: Contacte a soporte'
+
+            elif codigo_respuesta in ['ERROR_INTERNO']:
+                self.state = 'E'  # En Espera
+                self.payment_verification_note = f"Error interno al verificar el pago: En unos momentos se intentará de nuevo. Puede cerrar esta pestaña"
+                self.save(update_fields=['state', 'payment_verification_note'])
+                return False, "Error interno al verificar el pago."
             elif codigo_respuesta in ["TRANSFERENCIA_YA_REGISTRADA"]:
                 # Si la transferencia ya fue registrada, marcar el pago como cancelada
                 self.state = 'C'
-                self.payment_verification_note = f'Pago cancelado: {status_descripcion}'
-            
+                self.payment_verification_note = f'Pago cancelado: {descripcion}'
+                self.save(update_fields=['state', 'payment_verification_note'])
+                _logger.error(f"Pago ya registrado {self.id}: {descripcion}")
+                return False, 'Pago ya registrado, por favor verifique su número de referencia.'
             else:
-                # Si la API devuelve un error al registrar el pago, marcarlo como "En Espera"
-                self.state = 'E'  # En Espera
-                self.save(update_fields=['state'])
+                self.state = 'C'  # Cancelado
+                self.payment_verification_note = f"Error al verificar el pago: {descripcion}"
+                self.save(update_fields=['state', 'payment_verification_note'])
                 _logger.error(f"Error al registrar el pago {self.id}: {descripcion}")
-                return False
-    
+                return False, descripcion
         except Exception as e:
             _logger.error(f"Error inesperado al procesar el pago {self.id}: {e}")
-            return False
+            return False, "Error inesperado al procesar el pago."
+        return False, codigo_respuesta
     
     
+    def create_tickets(self):
+        # Crear los tickets si el pago es aprobado
+        _logger.warning('VOY A CREAR LOS TICKETS!!!')
+        try:
+            with transaction.atomic():
+                sorteo = Sorteo.objects.select_for_update().get(pk=self.sorteo.pk)
+
+                # Validar que haya suficientes boletos disponibles
+                if (sorteo.tickets_solds + self.tickets_quantity) > sorteo.total_tickets:
+                    self.state = 'C'  # Cancelado
+                    self.save(update_fields=['state'])
+                    return False
+
+                last_ticket = sorteo.tickets.order_by('-serial').first()
+                start_serial = (last_ticket.serial + 1) if last_ticket else 1
+                _logger.warning(f'START SERIAL: {start_serial} {last_ticket}')
+                # Crear los boletos en lote
+                tickets_to_create = [
+                    Ticket(
+                        serial=start_serial + i,
+                        owner_name=self.owner_name,
+                        owner_ci=self.owner_ci,
+                        owner_email=self.owner_email,
+                        owner_phone=self.owner_phone,
+                        sorteo=sorteo,
+                        payment=self
+                    ) for i in range(self.tickets_quantity)
+                ]
+                Ticket.objects.bulk_create(tickets_to_create)
+                _logger.warning(f'TICKETS CREADOS: {tickets_to_create}')
+                # Actualizar el contador de boletos vendidos
+                sorteo.tickets_solds = F('tickets_solds') + self.tickets_quantity
+                sorteo.save(update_fields=['tickets_solds'])
+
+                # Marcar el pago como verificado
+                self.state = 'V'
+                self.payment_verification_note = f"Pago verificado y {self.tickets_quantity} boletos creados para el sorteo {sorteo.title}."
+                self.save(update_fields=['state', 'payment_verification_note'])
+                _logger.warning(f'TICKETS CREADOS: {tickets_to_create}')
+                return True
+            _logger.warning('Siempre es lo mismo!!!')
+        except Exception as e:
+            _logger.error(f"Error al crear tickets para el pago {self.id}: {e}")

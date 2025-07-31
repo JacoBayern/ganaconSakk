@@ -54,37 +54,27 @@ def create_payment(request, sorteo_id):
     except Sorteo.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Sorteo no disponible o no encontrado!'})
 
-    form = PaymentForm(request.POST)
-    #Check if the sorteo is available
-    if sorteo.state != 'A':
-        return JsonResponse({'status': 'error', 'message': 'El sorteo ya no está disponible!'}, status=400)
-
-    #Check if the transferred amount matches the ticket price and quantity
-    transferred_amount = float(form.data.get('transferred_amount'))
-    if transferred_amount != sorteo.ticket_price * int(form.data.get('tickets_quantity')):
-        return JsonResponse({'status': 'error', 'message': 'El monto transferido no coincide con el precio de los boletos!'}, status=400)
-    
-    #Check if theres another payment with the same reference
-    reference = form.data.get('reference')
-    if Payment.objects.filter(reference=reference).exists():
-        return JsonResponse({'status': 'error', 'message': 'Ya hay otro pago con esta referencia!'}, status=400)
-
+    # Se pasa la instancia del sorteo al formulario para realizar validaciones complejas.
+    form = PaymentForm(request.POST, sorteo=sorteo)
 
     if form.is_valid():
-        pago = form.save(commit=False)
-        pago.sorteo = sorteo
-        pago.method = 'P'  # 'P' para Pago Móvil por defecto
-        pago.state = 'E'   # 'E' para En Espera por defecto
-        #TODO generar aquí si es necesario,el serial del PAGO ej:
-        # pago.serial = generar_un_serial_unico()
-        pago.save()
+        try:
+            pago = form.save(commit=False)
+            pago.sorteo = sorteo
+            pago.method = 'P'  # 'P' para Pago Móvil por defecto
+            pago.state = 'E'   # 'E' para En Espera por defecto¿
+            pago.save()
 
-        success, api_response = register_payment_api(pago)
-        if not success:
-            _logger.error(f"Fallo al registrar el pago {pago.id} en la API externa. Se necesitará registro manual o automático.")
-
-        return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones!'})
+            result, message = pago.process_verified_payment()
+            _logger.warning(f"Pago creado: {pago.id}, estado: {pago.state}, mensaje: {message}")
+            if not result:
+                return JsonResponse({'status': 'error', 'message': message}, status=500)
+            else:
+                return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones! En breve podrá verificar sus tickets en el apartado "Ver mis tickets comprados"'})
+        except Exception as e:
+            _logger.error(f"Error al crear el pago: {e}")
     else:
+        # El formulario ahora se encarga de todas las validaciones y devuelve los errores.
         return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
 
 @login_required
@@ -160,6 +150,7 @@ def verify_payment(request, payment_id):
     """
     payment = get_object_or_404(Payment, pk=payment_id)
     result = payment.process_verified_payment()
+    _logger.warning(f'RESULTADOOOO: {result}')
     if result:
         return JsonResponse({'status': 'success', 'message': 'Pago verificado y boletos creados exitosamente!'})
     else:

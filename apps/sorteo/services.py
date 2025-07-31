@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 import os
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def register_payment_api(payment):
@@ -14,23 +14,24 @@ def register_payment_api(payment):
     url = os.getenv('ADD_PAYMENT_URL')
     token = os.getenv('TOKEN_KEY')
     id_usr = os.getenv('ID_USR')
+    tlf = '0'+str(payment.owner_phone.national_number)
     payload = {
         'idusr': id_usr,
         'token': token,
         'idPago': payment.serial,
-        'mtPago': float(payment.transferred_amount, 2),
+        'mtPago': '{0:.2f}'.format(payment.transferred_amount).replace('.', ',') ,
         'descPago': f"Pago de {payment.tickets_quantity}",
         'nuReferenciaTransf': payment.reference,
         'idbancoTransf': payment.bank_of_transfer,
-        'fechaTransferencia': payment.transferred_date,
+        'fechaTransferencia': payment.transferred_date.strftime('%d/%m/%Y'),
         'nacCiTitularCuentaTransferencia': payment.type_CI,
         'numeroCiTitularCuentaTransferencia': payment.owner_ci,
         'nmTitularCuentaTransferencia': payment.owner_name,
-        'telfTitularCuentaTransferencia': payment.owner_phone,
+        'telfTitularCuentaTransferencia': tlf,
         'correoTitularCuentaTransferencia': payment.owner_email,
     }
     headers = {'Content-Type': 'application/json'}
-
+    _logger.warning(f'Registrando pago: {payload}')
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=15)
         data = response.json()
@@ -40,7 +41,6 @@ def register_payment_api(payment):
         respuesta_json = {
         "codigo_respuesta": mensaje,
         "descripcion": "",
-        "accion_sugerida": ""
         }
 
         match mensaje:
@@ -91,7 +91,7 @@ def register_payment_api(payment):
 
         return True, respuesta_json
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error al registrar el pago {payment.id} en la API: {e}")
+        _logger.error(f"Error al registrar el pago {payment.id} en la API: {e}")
         return False, {'message': str(e)}
 
 def get_payment_status_api(payment):
@@ -113,10 +113,11 @@ def get_payment_status_api(payment):
         response = requests.post(url, json=payload, timeout=15)
         data = response.json()
         mensaje = data.get('Mensaje')
+        estatus = data.get('estatus')
         respuesta_json = {
         "codigo_respuesta": mensaje,
         "descripcion": "",
-        "accion_sugerida": ""
+        "estatus": estatus,
         }
 
         match mensaje:
@@ -128,7 +129,7 @@ def get_payment_status_api(payment):
                 estatus = data.get('estatus')
                 match estatus:
                     case 'APROBADO':
-                        respuesta_json["descripcion"] = 'El pago ha sido aprobado.'
+                        respuesta_json["descripcion"] = 'El pago ha sido aprobado.'                        
                     case 'RECHAZADO':
                         causaRechazo = data.get('causaRechazo')
                         respuesta_json["descripcion"] = f'El pago ha sido rechazado: {causaRechazo}'
@@ -137,8 +138,8 @@ def get_payment_status_api(payment):
                     
 
         
-        logger.info(f"Consulta de estado para pago {payment.id}: API devolvió '{status}'")
+        _logger.info(f"Consulta de estado para pago {payment.id}: API devolvió '{mensaje}'")
         return respuesta_json
     except requests.exceptions.RequestException as e:
-        logger.error(f"Error al consultar estado del pago {payment.id} en la API: {e}")
+        _logger.error(f"Error al consultar estado del pago {payment.id} en la API: {e}")
         return 'ERROR', {'message': str(e)}

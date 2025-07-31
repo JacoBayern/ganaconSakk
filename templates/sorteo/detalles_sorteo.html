@@ -140,7 +140,8 @@
 
             <div class="mb-3">
               <label class="form-label">{{ form.transferred_date.label_tag }}</label>
-              {{ form.transferred_date | add_class:"form-control" }}
+              {# El widget del formulario ahora se encarga de los atributos 'type' y 'class' #}
+              {{ form.transferred_date }}
               <div id="error-transferred_date" class="invalid-feedback"></div>
             </div>
 
