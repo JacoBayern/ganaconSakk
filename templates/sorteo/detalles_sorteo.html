@@ -60,11 +60,15 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-
+        
         <form id="paymentForm" 
               action="{% url 'crear_pago' sorteo.id %}" 
               method="POST" 
-              data-ticket-price="{{ sorteo.ticket_price|stringformat:'f' }}">
+              data-ticket-price="{{ sorteo.ticket_price|stringformat:'f' }}"
+              data-sorteo-id="{{ sorteo.id }}"
+              data-check-url="{% url 'check_availability' sorteo.id %}"
+              >
+              
           {% csrf_token %}
 
           <div id="step-1" class="payment-step">
@@ -136,6 +140,8 @@
               <label class="form-label">{{ form.reference.label_tag }}</label>
               {{ form.reference | add_class:"form-control" }}
               <div id="error-reference" class="invalid-feedback"></div>
+              <div class="form-text">⚠️ Se requieren todos los números de referencia del pago.</div>
+
             </div>
 
             <div class="mb-3">

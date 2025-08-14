@@ -4,7 +4,6 @@
 <div class="container">
     <div class="d-flex justify-content-between align-items-center my-4">
         <h1 class="m-0 text-light">Lista de Pagos</h1>
-        <a href="{% url 'admin:index' %}" class="btn btn-secondary">Ir al Admin de Django</a>
     </div>
 
     <!-- Barra de Búsqueda -->
@@ -36,6 +35,7 @@
                             <th>ID</th>
                             <th>Fecha de Pago</th>
                             <th>Propietario</th>
+                            <th>Sorteo</th>
                             <th>Monto</th>
                             <th>Estado</th>
                             <th>Serial</th>
@@ -56,6 +56,7 @@
                                 {{ payment.owner_name }}<br>
                                 <small class="text-muted">{{ payment.owner_ci }}</small>
                             </td>
+                            <td>{{ payment.sorteo.title }}</td>
                             <td>Bs.{{ payment.transferred_amount }}</td>
                             <td>
                                 {% if payment.state == 'E' %}

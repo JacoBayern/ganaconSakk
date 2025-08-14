@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from django.db import transaction, IntegrityError
 from django.db.models import F
 import logging
+import random
 from apps.sorteo.services import register_payment_api, get_payment_status_api
 # Create your models here.
 class Sorteo(models.Model):
@@ -258,45 +259,68 @@ class Payment(models.Model):
     
     
     def create_tickets(self):
-        # Crear los tickets si el pago es aprobado
-        _logger.warning('VOY A CREAR LOS TICKETS!!!')
+        """Crea tickets para un pago aprobado de manera atómica"""
+        _logger.info(f'Iniciando creación de tickets para pago {self.id}')
+        tickets_to_generate = self.tickets_quantity
+
         try:
             with transaction.atomic():
                 sorteo = Sorteo.objects.select_for_update().get(pk=self.sorteo.pk)
 
-                # Validar que haya suficientes boletos disponibles
-                if (sorteo.tickets_solds + self.tickets_quantity) > sorteo.total_tickets:
+                # Validar disponibilidad
+                if (sorteo.tickets_solds + tickets_to_generate) > sorteo.total_tickets:
                     self.state = 'C'  # Cancelado
                     self.save(update_fields=['state'])
+                    _logger.warning(f'No hay tickets disponibles. Pago {self.id} cancelado')
                     return False
 
-                last_ticket = sorteo.tickets.order_by('-serial').first()
-                start_serial = (last_ticket.serial + 1) if last_ticket else 1
-                _logger.warning(f'START SERIAL: {start_serial} {last_ticket}')
-                # Crear los boletos en lote
+                existing_serials = set(Ticket.objects.filter(sorteo=sorteo).values_list('serial', flat=True))
+                generated_serials = set()
+                max_attempts = sorteo.total_tickets * 2  # Límite para evitar loops infinitos
+                attempts = 0
+
+                # Generación de números únicos
+                while len(generated_serials) < tickets_to_generate and attempts < max_attempts:
+                    potential_serial = random.randint(1, sorteo.total_tickets)
+                    if potential_serial not in existing_serials and potential_serial not in generated_serials:
+                        generated_serials.add(potential_serial)
+                    attempts += 1
+
+                if len(generated_serials) < tickets_to_generate:
+                    raise ValueError("No se pudieron generar números de tickets únicos")
+
                 tickets_to_create = [
                     Ticket(
-                        serial=start_serial + i,
+                        serial=serial,
                         owner_name=self.owner_name,
                         owner_ci=self.owner_ci,
                         owner_email=self.owner_email,
                         owner_phone=self.owner_phone,
                         sorteo=sorteo,
                         payment=self
-                    ) for i in range(self.tickets_quantity)
+                    ) 
+                    for serial in generated_serials
                 ]
+
                 Ticket.objects.bulk_create(tickets_to_create)
-                _logger.warning(f'TICKETS CREADOS: {tickets_to_create}')
-                # Actualizar el contador de boletos vendidos
-                sorteo.tickets_solds = F('tickets_solds') + self.tickets_quantity
+                _logger.warning(f'TICKETS CREADOOOOS{tickets_to_create}')
+                _logger.info(f'Creados {len(tickets_to_create)} tickets para pago {self.id}')
+
+                # Actualizar contador
+                sorteo.tickets_solds = F('tickets_solds') + tickets_to_generate
                 sorteo.save(update_fields=['tickets_solds'])
 
-                # Marcar el pago como verificado
+                # Actualizar estado del pago
                 self.state = 'V'
-                self.payment_verification_note = f"Pago verificado y {self.tickets_quantity} boletos creados para el sorteo {sorteo.title}."
+                self.payment_verification_note = (
+                    f"Pago verificado y {tickets_to_generate} boletos creados "
+                    f"para el sorteo {sorteo.title}."
+                )
                 self.save(update_fields=['state', 'payment_verification_note'])
-                _logger.warning(f'TICKETS CREADOS: {tickets_to_create}')
+
                 return True
-            _logger.warning('Siempre es lo mismo!!!')
+
         except Exception as e:
-            _logger.error(f"Error al crear tickets para el pago {self.id}: {e}")
+            _logger.error(f"Error crítico al crear tickets para pago {self.id}: {str(e)}", 
+                         exc_info=True)
+            raise  # Re-lanza la excepción para manejo superior

@@ -1,34 +1,48 @@
 function verifyPayment(paymentId) {
     const button = document.querySelector(`button[onclick="verifyPayment(${paymentId})"]`);
-    if (confirm('¿Estás seguro de que deseas verificar este pago?')) {
-        // Usa la URL con el nuevo patrón
-        const csrf_token = button.getAttribute('data-csrf-token');
-        fetch(`/payment/${paymentId}/verify`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrf_token,
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                console.log('SEXOOOO: ', response)
-                throw new Error('Error en la respuesta del servidor');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                window.location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error al verificar el pago: ' + error.message);
-        });
-    }
+    const csrf_token = button.getAttribute('data-csrf-token');
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Vas a marcar este pago como verificado. Esta acción generará los boletos correspondientes.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, ¡verificar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/payment/${paymentId}/verify`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrf_token,
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                // Obtenemos el cuerpo JSON para poder leer los mensajes de error del backend
+                return response.json().then(data => ({ ok: response.ok, data }));
+            })
+            .then(({ ok, data }) => {
+                if (ok && data.status === 'success') {
+                    Swal.fire({
+                        title: '¡Verificado!',
+                        text: data.message,
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    // Si la respuesta no es "ok" o el status es "error", lanzamos un error con el mensaje del backend
+                    throw new Error(data.message || 'Ocurrió un error desconocido.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', error.message, 'error');
+            });
+        }
+    });
 }

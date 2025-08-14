@@ -42,9 +42,6 @@ def details(request, sorteo_id):
     }
     return render(request, 'sorteo/detalles_sorteo.html', context)
 
-#TODO añadir validación en caso de que el monto y la cantidad de boletos no coincidan con el calculo trayendo el objeto.
-#TODO añadir validación en caso de que la rifa ya no esté disponible.
-#TODO implementar API
 @require_http_methods(["POST"])
 def create_payment(request, sorteo_id):
     #TODO verificacion de numero telefonico
@@ -86,29 +83,32 @@ def payment_list(request):
     state_filter = request.GET.get('state', '')
 
     # Ordenar por estado: 'En Espera' primero, luego el resto por fecha.
-    payment_list = Payment.objects.annotate(
+    payment_list = Payment.objects.select_related('sorteo').annotate(
         state_order=Case(
             When(state='E', then=Value(1)),
             When(state='V', then=Value(2)),
             When(state='C', then=Value(3)),
             default=Value(4)
-        )
-    ).order_by('state_order', 'created_at')
+        )).order_by('state_order', 'created_at')
 
     # Aplicar filtro de estado si se proporciona uno
     if state_filter and state_filter in ['E', 'V', 'C']:
         payment_list = payment_list.filter(state=state_filter)
     
     if query:
+        print(f"Buscando: {query}")  # Debug
         payment_list = payment_list.filter(
             Q(owner_name__icontains=query) |
             Q(owner_ci__icontains=query) |
             Q(owner_email__icontains=query) |
             Q(reference__icontains=query) |
-            Q(serial__icontains=query)
+            Q(serial__icontains=query) |
+            Q(sorteo__title__icontains=query)
         )
+        from django.db import connection
+        print(connection.queries[-1]['sql'])  # Debug SQL
 
-    paginator = Paginator(payment_list, 15)  # Muestra 15 pagos por página
+    paginator = Paginator(payment_list, 15)
     page_number = request.GET.get('page')
     payments_page = paginator.get_page(page_number)
 
@@ -271,3 +271,40 @@ def sorteo_edit(request, sorteo_id=None):
 
     context = {'form': form, 'page_title': page_title}
     return render(request, 'sorteo/sorteo_form.html', context)
+
+def check_availability(request, sorteo_id):
+    # Solo respondemos a solicitudes GET
+    if request.method == 'GET':
+        # Obtenemos el sorteo o devolvemos un error 404 si no existe
+        sorteo = get_object_or_404(Sorteo, id=sorteo_id)
+        
+        # Obtenemos la cantidad que el usuario quiere comprar desde los parámetros de la URL
+        try:
+            quantity_wanted = int(request.GET.get('quantity', 0))
+        except (ValueError, TypeError):
+            return JsonResponse({'error': 'Cantidad inválida.'}, status=400)
+
+        if quantity_wanted <= 0:
+            return JsonResponse({'available': False, 'message': 'La cantidad debe ser mayor a cero.'})
+
+        # --- Lógica de cálculo de disponibilidad ---
+        # Suponiendo que tienes un campo 'total_tickets' en tu modelo Sorteo
+        total_tickets_in_raffle = sorteo.total_tickets 
+        
+        # Suponiendo que cada ticket vendido es un objeto en el modelo Ticket
+        tickets_sold = Ticket.objects.filter(sorteo=sorteo).count()
+        
+        available_tickets = total_tickets_in_raffle - tickets_sold
+        
+        if quantity_wanted <= available_tickets:
+            # Hay suficientes boletos
+            return JsonResponse({'available': True})
+        else:
+            # No hay suficientes boletos
+            message = f'Lo sentimos, solo quedan {available_tickets} boletos disponibles.'
+            if available_tickets == 0:
+                message = '¡Lo sentimos, todos los boletos se han agotado!'
+            return JsonResponse({'available': False, 'message': message})
+            
+    # Si no es GET, devolvemos un error de método no permitido
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
