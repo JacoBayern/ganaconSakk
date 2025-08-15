@@ -25,6 +25,7 @@ class Sorteo(models.Model):
     description = models.TextField(('Descripción'))
     date_lottery = models.DateTimeField(("Fecha del Sorteo"), auto_now=False, auto_now_add=False)
     prize_picture = models.ImageField(("Foto del premio"), upload_to='premios/')
+    winner_picture = models.ImageField(("Foto del ganador"), upload_to='ganadores/', null=True, blank=True)
     ticket_price = models.DecimalField(("Precio del ticket"), max_digits=5, decimal_places=2)
     state = models.CharField(("Estado del sorteo"), choices=ESTATE, default='B', blank=False)
     total_tickets = models.PositiveIntegerField(("Máxima cantidad de tickets a vender"), blank=False)
@@ -36,6 +37,9 @@ class Sorteo(models.Model):
         verbose_name = 'Sorteo'
         verbose_name_plural = 'Sorteos'
         ordering = ['-is_main','-date_lottery']
+
+    def __str__(self):
+        return self.title
 
     
     def tickets_sold_quantity(self):
@@ -95,7 +99,8 @@ class Payment(models.Model):
     #TODO signal para el update_at
     #TODO lógica para creación de tickets
     PAYMENT_METHODS = [
-        ('P', 'Pago Móvil')
+        ('P', 'Pago Móvil'),
+        ('Z', 'Zelle')
         ]
     PAYMENT_STATES =[
         ('V', 'Verificado'),
@@ -138,11 +143,11 @@ class Payment(models.Model):
     owner_email = models.EmailField(("Correo del propietario"), max_length=254)
     owner_phone = PhoneNumberField(verbose_name='Telefono del propietario', region='VE')
     method = models.CharField(("Método de Pago"), max_length=50, choices=PAYMENT_METHODS)
-    reference = models.CharField(max_length=30)
+    reference = models.CharField( ("Referencia del pago"),max_length=30)
     state = models.CharField(("Estado"), max_length=50, choices=PAYMENT_STATES)
     created_at = models.DateTimeField(("Fecha de creación"), auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(("Ultima actualización"), auto_now=False, null=True, editable=False)
-    tickets_quantity = models.PositiveBigIntegerField()
+    tickets_quantity = models.PositiveBigIntegerField(("Cantidad de tickets"))
     serial = models.CharField(("Serial de la transacción"), max_length=50, editable=False, blank=True)
     sorteo = models.ForeignKey('Sorteo', on_delete=models.CASCADE, related_name='pagos')
     transferred_amount = models.DecimalField(("Monto transferido"), max_digits=10, decimal_places=2)
@@ -161,14 +166,14 @@ class Payment(models.Model):
     def save(self, *args, **kwargs):
         if not self.serial:
             self.serial = f"REF-{self.owner_ci[:4]}-{int(time.time())}"
-        
+
         is_new = self.pk is None
-        old_state = None
-        if not is_new:
-            # Obtenemos solo el estado para evitar una consulta completa si no es necesaria
-            old_state = Payment.objects.values_list('state', flat=True).get(pk=self.pk)
 
         super().save(*args, **kwargs)
+
+        if is_new and self.method == 'Z':
+            if not self.create_tickets():
+                _logger.error(f"La creación de tickets manual para el pago {self.id} falló.")
 
     def process_verified_payment(self):
         """
@@ -195,7 +200,6 @@ class Payment(models.Model):
                 self.is_payment_registered = True
                 _logger.warning('HOLAAAAAA ENTRÉ ACÁ')
                 self.save(update_fields=['is_payment_registered'])
-                time.sleep(5)
                 _logger.warning('HOLAAAAAA ENTRÉ ACÁ OTRAVEEEEEE')
                 status_response = get_payment_status_api(self)
                 status_codigo = status_response.get("codigo_respuesta")

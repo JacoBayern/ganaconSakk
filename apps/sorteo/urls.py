@@ -14,4 +14,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('sorteo/<int:sorteo_id>/tickets', views.ticket_list, name='ticket_list'),
      path('sorteo/<int:sorteo_id>/check_availability/', views.check_availability, name='check_availability'),
+    path('payment/zelle/create/', views.create_zelle_payment, name='create_zelle_payment'),
 ]   

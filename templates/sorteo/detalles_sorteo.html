@@ -12,9 +12,36 @@
     </header>
  
     <div class="rifa-imagen-container">
-      <div class="rifa-imagen">
-          <img src="{{sorteo.prize_picture.url}}" alt="{{sorteo.title}}">
-      </div>
+      {% if sorteo.winner_picture %}
+        <div id="sorteoCarousel" class="carousel slide rifa-imagen" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img src="{{ sorteo.prize_picture.url }}" class="d-block w-100" alt="Premio: {{ sorteo.title }}">
+              <div class="carousel-caption d-none d-md-block">
+                <h5>Premio del Sorteo</h5>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <img src="{{ sorteo.winner_picture.url }}" class="d-block w-100" alt="Ganador del sorteo: {{ sorteo.title }}">
+              <div class="carousel-caption d-none d-md-block">
+                <h5>¡Ganador!</h5>
+              </div>
+            </div>
+          </div>
+          <button class="carousel-control-prev" type="button" data-bs-target="#sorteoCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#sorteoCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Siguiente</span>
+          </button>
+        </div>
+      {% else %}
+        <div class="rifa-imagen">
+            <img src="{{sorteo.prize_picture.url}}" alt="{{sorteo.title}}">
+        </div>
+      {% endif %}
       <div class="rifa-acciones">
         {% if porcentaje < 100 %}
           <button class="rifa-cta-button" data-bs-toggle="modal" data-bs-target="#paymentModal">
@@ -119,10 +146,10 @@
           
           <div id="step-3" class="payment-step" style="display: none;">
             <h4 class='text-center'>Paso 3: Realiza tu Pago</h4>
-            <p>Datos para el Pago Móvil...</p>
+            <p>Datos para el Pago Móvil:</p>
             <p><strong>Banco: </strong>Banesco</p>
-            <p><strong>Número de Teléfono: </strong>04120561004</p>
-            <p><strong>C.I: </strong>29737018</p>
+            <p><strong>Número de Teléfono: </strong>28203911</p>
+            <p><strong>C.I: </strong>0424-3461855</p>
             <p><strong>Monto a Pagar:</strong> <span id="montoPagar"></span></p>
           </div>
 

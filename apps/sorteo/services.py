@@ -138,7 +138,7 @@ def get_payment_status_api(payment):
                     
 
         
-        _logger.info(f"Consulta de estado para pago {payment.id}: API devolvió '{mensaje}'")
+        _logger.info(f"Consulta de estado para pago {payment.id}: API devolvió '{mensaje} {respuesta_json['descripcion']}'")
         return respuesta_json
     except requests.exceptions.RequestException as e:
         _logger.error(f"Error al consultar estado del pago {payment.id} en la API: {e}")

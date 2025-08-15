@@ -47,14 +47,16 @@ body {
     gap: var(--space-lg);
 }
 
-.logo h1 {
-    margin: 0;
-    font-size: 1.8rem;
-    letter-spacing: -0.5px;
+.logo img {
+    display: inline-block;
+    height: 150px;
+    width: 150px;
 }
-.logo h1 a{
-    color: var(--text-light);
-    text-decoration: none;
+
+.logo-img {
+    height: 50px; /* Ajusta la altura según tu logo */
+    width: auto;
+    vertical-align: middle;
 }
 
 .social-links {
@@ -250,6 +252,11 @@ body {
 .cuenta-regresiva .social-links a:hover {
     color: var(--primary-color);
     transform: scale(1.1);
+}
+
+.countdown-logo {
+    height: 80px; /* Puedes ajustar esta altura */
+    width: auto;
 }
 
 /* Responsive adjustments */
@@ -515,6 +522,26 @@ body {
     border-radius: 10px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
     transition: transform 0.5s;
+}
+
+/* Estilos para el carrusel de imágenes del sorteo */
+.rifa-imagen.carousel .carousel-inner,
+.rifa-imagen.carousel .carousel-item {
+    height: 100%;
+    border-radius: 8px; /* Coincidir con el contenedor */
+}
+
+.rifa-imagen.carousel .carousel-inner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.rifa-imagen.carousel .carousel-item img {
+    height: 100%;
+    object-fit: cover;
 }
 
 .rifa-acciones {

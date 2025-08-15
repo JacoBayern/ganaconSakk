@@ -67,3 +67,33 @@ class SorteoForm(forms.ModelForm):
     class Meta:
         model = Sorteo
         fields = '__all__'
+
+        widgets = {
+            'owner_phone': forms.TextInput(attrs={'placeholder': '+584121234567'}),
+        }
+
+class ZellePaymentForm(forms.ModelForm):
+    """
+    Formulario para que un administrador registre un pago por Zelle.
+    """
+    sorteo = forms.ModelChoiceField(
+        queryset=Sorteo.objects.filter(state='A'),
+        label="Sorteo",
+        empty_label="Seleccione un sorteo activo",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['reference'].required = True
+
+    def clean_reference(self):
+        reference = self.cleaned_data.get('reference')
+        if Payment.objects.filter(reference=reference, method='Z').exists():
+            raise forms.ValidationError('Este número de referencia de Zelle ya ha sido registrado.')
+        return reference
+
+    class Meta:
+        model = Payment
+        fields = ['sorteo', 'owner_name', 'owner_ci', 'type_CI', 'owner_email', 'owner_phone', 'tickets_quantity', 'reference']
+

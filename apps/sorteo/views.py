@@ -2,13 +2,14 @@ from django.shortcuts import redirect, render, get_object_or_404
 from .models import Sorteo, Payment, Ticket
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .forms import PaymentForm, SorteoForm
+from .forms import PaymentForm, SorteoForm, ZellePaymentForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Case, When, Value
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
+from django.contrib.auth.forms import AuthenticationForm 
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 import logging
 from .services import register_payment_api
 
@@ -144,17 +145,21 @@ def logout_view(request):
 
 @login_required
 @require_http_methods(["POST"])
+@transaction.atomic
 def verify_payment(request, payment_id):
     """
     Verify a payment
     """
     payment = get_object_or_404(Payment, pk=payment_id)
-    result = payment.process_verified_payment()
-    _logger.warning(f'RESULTADOOOO: {result}')
-    if result:
-        return JsonResponse({'status': 'success', 'message': 'Pago verificado y boletos creados exitosamente!'})
+    if payment.state != 'E':
+        return JsonResponse({'status': 'error', 'message': 'Este pago no está en espera de verificación.'}, status=400)
+
+    success, message = payment.process_verified_payment()
+    _logger.warning(f'Resultado de verificación para pago {payment_id}: {success} - {message}')
+    if success:
+        return JsonResponse({'status': 'success', 'message': message})
     else:
-        return JsonResponse({'status': 'error', 'message': 'Error al verificar el pago.'}, status=500)
+        return JsonResponse({'status': 'error', 'message': message}, status=500)
 
     
 @require_http_methods(["POST"])
@@ -308,3 +313,36 @@ def check_availability(request, sorteo_id):
             
     # Si no es GET, devolvemos un error de método no permitido
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+def create_zelle_payment(request):
+    """
+    Vista para que un administrador registre un pago por Zelle.
+    """
+    if not request.user.is_staff:
+        messages.error(request, "No tienes permiso para acceder a esta página.")
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = ZellePaymentForm(request.POST)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.method = 'Z'  # Zelle
+            payment.state = 'V'   # Verificado
+            
+            # El monto no está en el formulario, lo calculamos
+            sorteo = form.cleaned_data['sorteo']
+            payment.transferred_amount = sorteo.ticket_price * payment.tickets_quantity
+            
+            payment.save()  # Esto llamará al método save() del modelo y creará los tickets
+            
+            messages.success(request, f'Pago Zelle de {payment.owner_name} registrado y boletos creados exitosamente.')
+            return redirect('payment_list')
+    else:
+        form = ZellePaymentForm()
+
+    context = {
+        'form': form,
+        'page_title': 'Registrar Pago Manual (Zelle)'
+    }
+    return render(request, 'payment/zelle_payment_form.html', context)

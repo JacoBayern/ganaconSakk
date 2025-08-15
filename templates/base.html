@@ -14,7 +14,9 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <h1><a href="{% url 'home' %}" class="text-decoration-none">Gana Con Sakk</a></h1>
+                <a href="{% url 'home' %}">
+                    <img src="{% static 'images/logo_header.png' %}" alt="Gana Con Sakk" class="logo-img">
+                </a>
             </div>
             <nav class="d-flex align-items-center gap-3">
                 <div class="social-links d-none d-md-flex">
