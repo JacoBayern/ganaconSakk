@@ -43,7 +43,7 @@
         </div>
       {% endif %}
       <div class="rifa-acciones">
-        {% if porcentaje < 100 or sorteo.state != 'A'%}
+        {% if porcentaje < 100 and sorteo.state == 'A'%}
           <button class="rifa-cta-button" data-bs-toggle="modal" data-bs-target="#paymentModal">
             COMPRAR BOLETOS
           </button>
