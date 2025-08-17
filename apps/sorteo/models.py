@@ -114,6 +114,7 @@ class Payment(models.Model):
         ('J', 'Jurídico'),
     ]
     BANK_CHOICES = [
+        ('ZLL', 'Zelle'),
         ('0102', 'Banco de Venezuela'),
         ('0104', 'Banco Venezolano de Crédito'),
         ('0105', 'Banco Mercantil'),
@@ -166,14 +167,7 @@ class Payment(models.Model):
     def save(self, *args, **kwargs):
         if not self.serial:
             self.serial = f"REF-{self.owner_ci[:4]}-{int(time.time())}"
-
-        is_new = self.pk is None
-
         super().save(*args, **kwargs)
-
-        if is_new and self.method == 'Z':
-            if not self.create_tickets():
-                _logger.error(f"La creación de tickets manual para el pago {self.id} falló.")
 
     def process_verified_payment(self):
         """

@@ -326,18 +326,25 @@ def create_zelle_payment(request):
     if request.method == 'POST':
         form = ZellePaymentForm(request.POST)
         if form.is_valid():
-            payment = form.save(commit=False)
-            payment.method = 'Z'  # Zelle
-            payment.state = 'V'   # Verificado
-            
-            # El monto no está en el formulario, lo calculamos
-            sorteo = form.cleaned_data['sorteo']
-            payment.transferred_amount = sorteo.ticket_price * payment.tickets_quantity
-            
-            payment.save()  # Esto llamará al método save() del modelo y creará los tickets
-            
-            messages.success(request, f'Pago Zelle de {payment.owner_name} registrado y boletos creados exitosamente.')
-            return redirect('payment_list')
+            try:
+                with transaction.atomic():
+                    payment = form.save(commit=False)
+                    payment.method = 'Z'  # Zelle
+                    payment.bank_of_transfer = 'ZLL' # Identificador para Zelle
+                    
+                    # El monto no está en el formulario, lo calculamos
+                    sorteo = form.cleaned_data['sorteo']
+                    payment.transferred_amount = sorteo.ticket_price * payment.tickets_quantity
+                    
+                    payment.save()
+                    
+                    if not payment.create_tickets():
+                        raise Exception("No se pudieron crear los boletos. Verifique la disponibilidad.")
+                    
+                    messages.success(request, f'Pago Zelle de {payment.owner_name} registrado y boletos creados exitosamente.')
+                    return redirect('payment_list')
+            except Exception as e:
+                messages.error(request, f"Ocurrió un error al registrar el pago: {e}")
     else:
         form = ZellePaymentForm()
 

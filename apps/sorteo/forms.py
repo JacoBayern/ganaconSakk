@@ -1,5 +1,6 @@
 from django import forms
 from .models import Payment, Sorteo
+from django.utils import timezone
 
 class PaymentForm(forms.ModelForm):
     """
@@ -87,6 +88,17 @@ class ZellePaymentForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
+    transferred_date = forms.DateField(
+        label="Fecha de la transferencia",
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }
+        ),
+        initial=timezone.now
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['reference'].required = True
@@ -99,5 +111,4 @@ class ZellePaymentForm(forms.ModelForm):
 
     class Meta:
         model = Payment
-        fields = ['sorteo', 'owner_name', 'owner_ci', 'type_CI', 'owner_email', 'owner_phone', 'tickets_quantity', 'reference']
-
+        fields = ['sorteo', 'owner_name', 'owner_ci', 'type_CI', 'owner_email', 'owner_phone', 'tickets_quantity', 'reference', 'transferred_date']
