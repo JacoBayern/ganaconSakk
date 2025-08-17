@@ -43,12 +43,12 @@
         </div>
       {% endif %}
       <div class="rifa-acciones">
-        {% if porcentaje < 100 %}
+        {% if porcentaje < 100 or sorteo.state != 'A'%}
           <button class="rifa-cta-button" data-bs-toggle="modal" data-bs-target="#paymentModal">
             COMPRAR BOLETOS
           </button>
         {% else %}
-          <button class="rifa-cta-button" disabled>BOLETOS AGOTADOS</button>
+          <button class="rifa-cta-button" disabled>BOLETOS AGOTADOS O SORTEO FINALIZADO</button>
         {% endif %}
           <div class="rifa-estado-ventas">
               <div class="rifa-progress-bar">

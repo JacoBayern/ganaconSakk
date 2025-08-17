@@ -19,7 +19,7 @@ def home(request):
     sorteo_principal = Sorteo.objects.filter(is_main=True).first()
 
     # Obtener la lista de otros sorteos y paginarla
-    otros_sorteos_list = Sorteo.objects.exclude(is_main=True).filter(state__in=['A', 'F']).order_by('-date_lottery')
+    otros_sorteos_list = Sorteo.objects.exclude(is_main=True).filter(state__in=['A', 'F'], is_main=False).order_by('-date_lottery')
     paginator = Paginator(otros_sorteos_list, 6) # 6 sorteos por página
     page_number = request.GET.get('page')
     otros_sorteos_page = paginator.get_page(page_number)
