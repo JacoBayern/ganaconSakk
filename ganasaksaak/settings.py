@@ -24,12 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=dn5b5_)t0kax5m7&*s6k=&s&zn6#8!l$_6(w0t$z56!*n7fc@'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ganaconsaak.com', 'www.ganaconsaak.com', '44.217.170.131']
 
 
 # Application definition
@@ -149,3 +149,17 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 min
 INSTALLED_APPS += [
     'django_celery_beat', 
 ]
+
+SECURE_HSTS_SECONDS = 31536000  # 1 año
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Indica a Django que confíe en el encabezado X-Forwarded-Proto de Nginx
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Redirige todo HTTP → HTTPS
+SECURE_SSL_REDIRECT = True
+
+# Cookies seguras
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
