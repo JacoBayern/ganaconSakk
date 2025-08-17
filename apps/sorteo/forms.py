@@ -49,8 +49,9 @@ class PaymentForm(forms.ModelForm):
 
         # 3. Validación: El número de referencia no debe estar duplicado.
         reference = cleaned_data.get('reference')
-        if reference and Payment.objects.filter(reference=reference).exists():
-            self.add_error('reference', 'Este número de referencia ya ha sido registrado en otro pago.')
+        if reference:
+            if Payment.objects.filter(reference=reference).exclude(state='C').exists():
+                self.add_error('reference', 'Este número de referencia ya ha sido registrado en otro pago.')
 
     class Meta:
         model = Payment
@@ -69,7 +70,10 @@ class SorteoForm(forms.ModelForm):
         fields = '__all__'
 
         widgets = {
-            'owner_phone': forms.TextInput(attrs={'placeholder': '+584121234567'}),
+         'date_lottery': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+                format='%Y-%m-%dT%H:%M'
+                                                         ),
         }
 
 class ZellePaymentForm(forms.ModelForm):
