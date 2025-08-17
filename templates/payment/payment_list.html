@@ -51,6 +51,9 @@
                     <th>Sorteo</th>
                     <th>Comprador</th>
                     <th>Cédula</th>
+		    <th>Banco</th>
+		    <th>Celular</th>
+		    <th>Referencia</th>
                     <th>Cant. Boletos</th>
                     <th>Método</th>
                     <th>Estado</th>
@@ -66,7 +69,10 @@
                     <td>{{ payment.sorteo.title }}</td>
                     <td>{{ payment.owner_name }}</td>
                     <td>{{ payment.type_CI }}-{{ payment.owner_ci }}</td>
-                    <td>{{ payment.tickets_quantity }}</td>
+		    <td>{{payment.get_bank_of_transfer_display}}</td>
+		    <td>{{payment.owner_phone}}</td>
+		    <td>{{payment.reference}}</td>
+		    <td>{{ payment.tickets_quantity }}</td>
                     <td>{{ payment.get_method_display }}</td>
                     <td>
                         {% if payment.state == 'V' %}<span class="badge bg-success">{{ payment.get_state_display }}</span>
