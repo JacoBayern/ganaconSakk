@@ -22,7 +22,7 @@ def register_payment_api(payment):
         'mtPago': '{0:.2f}'.format(payment.transferred_amount).replace('.', ',') ,
         'descPago': f"Pago de {payment.tickets_quantity}",
         'nuReferenciaTransf': payment.reference,
-        'idbancoTransf': payment.bank_of_transfer,
+        'idbancoTransf': '117',
         'fechaTransferencia': payment.transferred_date.strftime('%d/%m/%Y'),
         'nacCiTitularCuentaTransferencia': payment.type_CI,
         'numeroCiTitularCuentaTransferencia': payment.owner_ci,
