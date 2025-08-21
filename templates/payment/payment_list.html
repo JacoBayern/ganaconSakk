@@ -57,7 +57,7 @@
                     <th>Cant. Boletos</th>
                     <th>Método</th>
                     <th>Estado</th>
-                    <th>Nota de verificacion</th>
+                    <th style="min-width: 250px;">Nota de verificación</th>
                     <th>Fecha</th>
                     <th>Acciones</th>
                 </tr>
@@ -80,7 +80,9 @@
                         {% elif payment.state == 'C' %}<span class="badge bg-danger">{{ payment.get_state_display }}</span>
                         {% endif %}
                     </td>
-                    <td>{{payment.payment_verification_note}}</td>
+                    <td class="text-wrap" style="max-width: 250px; word-break: break-word;">
+                        {{ payment.payment_verification_note|default:"--" }}
+                    </td>
                     <td>{{ payment.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
                         {% if payment.state == 'E' %}
