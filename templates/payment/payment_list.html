@@ -50,7 +50,6 @@
                     <th>ID</th>
                     <th>Sorteo</th>
                     <th>Comprador</th>
-                    <th>Cédula</th>
 		    <th>Banco</th>
 		    <th>Celular</th>
 		    <th>Referencia</th>
@@ -67,8 +66,10 @@
                 <tr>
                     <td>{{ payment.id }}</td>
                     <td>{{ payment.sorteo.title }}</td>
-                    <td>{{ payment.owner_name }}</td>
-                    <td>{{ payment.type_CI }}-{{ payment.owner_ci }}</td>
+                    <td>
+                        {{ payment.owner_name }}
+                        <div class="text-muted small">{{ payment.type_CI }}-{{ payment.owner_ci }}</div>
+                    </td>
 		    <td>{{payment.get_bank_of_transfer_display}}</td>
 		    <td>{{payment.owner_phone}}</td>
 		    <td>{{payment.reference}}</td>
@@ -94,7 +95,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center">No se encontraron pagos.</td>
+                    <td colspan="12" class="text-center">No se encontraron pagos.</td>
                 </tr>
                 {% endfor %}
             </tbody>
