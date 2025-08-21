@@ -110,8 +110,38 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="termsModalLabel">Términos y Condiciones</h5>
+          </div>
+          <div class="modal-body">
+            <p>Bienvenido a Gana Con Sakk. Al utilizar nuestro sitio web y participar en nuestros sorteos, usted acepta estar sujeto a los siguientes términos y condiciones. Por favor, léalos cuidadosamente.</p>            
+            <ol>
+                <li>Los tickets a comprar de cada una de nuestras rifas serán descritos en la página del detalle de la misma.</li>
+                <li>Solo pueden participar personas naturales mayores de 18 años.</li>
+                <li>Los premios deberán ser retirados personalmente, el lugar de entrega lo definirá el ganador del primer premio o premio mayor.</li>
+                <li>La entrega será ejecutada en un máximo de 72 horas.</li>
+                <li>Los ganadores deberán aceptar que Gana Con Sakk difunda en todas las redes sociales, evidencia con fotografías y videos donde aparezca el ganador, de que el premio fue entregado satisfactoriamente.</li>
+                <li>El ganador será contactado vía llamada de WhatsApp el mismo día de la rifa.</li>
+                <li>Los premios en moneda USD serán entregados en efectivo si el ganador se encuentra en el estado Carabobo, de lo contrario será vía transferencia en bolívares a tasa BCV.</li>
+                <li>Si te encuentras fuera del país también puedes participar, sólo tienes que tener un representante aquí en Venezuela que reciba tu premio.</li>
+                <li>El participante o jugador debe ser el titular de la cuenta desde donde se hace el pago de los tickets.</li>
+            </ol>
+
+            <p class="mt-3">Al hacer clic en "Aceptar", usted confirma que ha leído, entendido y aceptado estos términos y condiciones.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="acceptTermsBtn">Aceptar</button>
+          </div>
+        </div>
+      </div>
+    </div>
 {% endblock content %}
 
 {% block extra_js %}
 <script src="{% static 'js/ticket_finder.js' %}"></script>
+<script src="{% static 'js/terms.js' %}"></script>
 {% endblock extra_js %}

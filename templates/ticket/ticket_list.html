@@ -32,6 +32,7 @@
                             <th scope="col">N° de Ticket</th>
                             <th scope="col">Propietario</th>
                             <th scope="col">Cédula</th>
+                            <th scope="col">Número de teléfono</th>
                             <th scope="col">Correo Electrónico</th>
                             <th scope="col">Fecha de Compra</th>
                         </tr>
@@ -42,6 +43,7 @@
                             <td><strong>#{{ ticket.serial|stringformat:"05d" }}</strong></td>
                             <td>{{ ticket.owner_name }}</td>
                             <td>{{ ticket.owner_ci }}</td>
+                            <td>{{ ticket.owner_phone }}</td>
                             <td>{{ ticket.owner_email }}</td>
                             <td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td>
                         </tr>

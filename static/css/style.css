@@ -862,3 +862,10 @@ body {
 .sorteo-body{
     background-color: var(--bg-light);
 }
+
+/* Estilos para el modal de Términos y Condiciones */
+.modal-backdrop.show {
+    opacity: 0.7 !important;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
