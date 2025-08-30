@@ -62,7 +62,7 @@ class PaymentForm(forms.ModelForm):
             'transferred_date', 'transferred_amount'
         ]
         widgets = {
-            'owner_phone': forms.TextInput(attrs={'placeholder': '+584121234567'}),
+            'owner_phone': forms.TextInput(attrs={'placeholder': '04121234567'}),
         }
 
 class SorteoForm(forms.ModelForm):
