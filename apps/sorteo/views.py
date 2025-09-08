@@ -366,10 +366,6 @@ def approve_manual_payment(request, payment_id):
 
     payment = get_object_or_404(Payment, pk=payment_id)
 
-    if payment.state != 'E':
-        messages.warning(request, "Este pago no se puede aprobar manualmente porque no está 'En Espera'.")
-        return redirect('payment_list')
-
     try:
         with transaction.atomic():
             if payment.create_tickets():
