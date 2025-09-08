@@ -353,3 +353,30 @@ def create_zelle_payment(request):
         'page_title': 'Registrar Pago Manual (Zelle)'
     }
     return render(request, 'payment/zelle_payment_form.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def approve_manual_payment(request, payment_id):
+    """
+    Vista para que un administrador apruebe manualmente un pago y cree los tickets.
+    """
+    if not request.user.is_staff:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('payment_list')
+
+    payment = get_object_or_404(Payment, pk=payment_id)
+
+    if payment.state != 'E':
+        messages.warning(request, "Este pago no se puede aprobar manualmente porque no está 'En Espera'.")
+        return redirect('payment_list')
+
+    try:
+        with transaction.atomic():
+            if payment.create_tickets():
+                messages.success(request, f"Pago #{payment.id} aprobado manualmente. Se crearon {payment.tickets_quantity} boletos.")
+            else:
+                raise Exception("No se pudieron crear los boletos. Es posible que no haya disponibilidad.")
+    except Exception as e:
+        messages.error(request, f"Error al aprobar el pago #{payment.id}: {e}")
+
+    return redirect('payment_list')

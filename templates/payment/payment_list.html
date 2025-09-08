@@ -90,9 +90,18 @@
                     </td>
                     <td>
                         {% if payment.state == 'E' %}
-                            <button class="btn btn-sm btn-primary w-100" onclick="verifyPayment({{ payment.id }})" data-csrf-token="{{ csrf_token }}">
-                                <i class="fas fa-check"></i> Verificar
-                            </button>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-sm btn-primary" onclick="verifyPayment({{ payment.id }})" data-csrf-token="{{ csrf_token }}">
+                                    <i class="fas fa-sync-alt"></i> Verificar API
+                                </button>
+                            </div>
+                        {% endif %}
+                        {% if payment.state == 'E' or payment.state == 'C' %}
+                         <button class="btn btn-sm btn-info w-100" 
+                                        onclick="approveManualPayment({{ payment.id }})" 
+                                        data-csrf-token="{{ csrf_token }}"
+                                        data-approve-url="{% url 'approve_manual_payment' payment.id %}">
+                                    <i class="fas fa-check-double"></i> Aprobar Manual</button>
                         {% endif %}
                     </td>
                 </tr>

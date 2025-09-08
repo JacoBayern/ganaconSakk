@@ -46,3 +46,36 @@ function verifyPayment(paymentId) {
         }
     });
 }
+
+function approveManualPayment(paymentId) {
+    const button = document.querySelector(`button[onclick="approveManualPayment(${paymentId})"]`);
+    const csrf_token = button.getAttribute('data-csrf-token');
+    const approve_url = button.getAttribute('data-approve-url');
+
+    Swal.fire({
+        title: '¿Aprobar manualmente?',
+        text: "Esta acción marcará el pago como verificado y creará los boletos. No se puede deshacer.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#17a2b8', // Color info de Bootstrap
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, ¡aprobar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Crear un formulario en memoria para enviar la petición POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = approve_url;
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrf_token;
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
