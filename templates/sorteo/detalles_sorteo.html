@@ -7,7 +7,7 @@
   <div class="rifa-detalle">
  
     <header class="rifa-header">
-      <p class="rifa-fecha">{{soteo.date_lottery}}</p>
+      <p class="rifa-fecha">{{sorteo.date_lottery|date:"d/m/Y h:i A"}}</p>
       <h1>{{ sorteo.title }}</h1>
     </header>
  
@@ -62,7 +62,7 @@
     <section class="rifa-descripcion-rifa">
       <h2>Detalles de la rifa</h2>
       <p>{{ sorteo.description }}</p>
-      <p class="rifa-fecha-sorteo">Fecha del sorteo: {{ sorteo.date_lottery }}</p>
+      <p class="rifa-fecha-sorteo">Fecha del sorteo: {{ sorteo.date_lottery|date:"d/m/Y h:i A" }}</p>
       <p class="rifa-organizador">Condiciones del sorteo: {{ sorteo.conditions }}</p>
     </section>
  
