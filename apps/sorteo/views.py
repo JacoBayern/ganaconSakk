@@ -68,7 +68,7 @@ def create_payment(request, sorteo_id):
             if not result:
                 return JsonResponse({'status': 'error', 'message': message}, status=500)
             else:
-                return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones! En breve podrá verificar sus tickets en el apartado "Ver mis tickets comprados"'})
+                return JsonResponse({'status': 'success', 'message': '¡Pago registrado con éxito! Suerte y bendiciones! En aproximadante 5 minutos podrá verificar sus tickets en el apartado "Ver mis tickets comprados"'})
         except Exception as e:
             _logger.error(f"Error al crear el pago: {e}")
     else:
