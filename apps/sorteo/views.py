@@ -174,7 +174,7 @@ def find_my_tickets(request):
 
     tickets = Ticket.objects.filter(
         Q(owner_email__iexact=identifier) | Q(owner_ci__iexact=identifier)
-    ).select_related('sorteo').order_by('-created_at')
+    ).filter(sorteo__state='A').select_related('sorteo').order_by('-created_at')
 
     if not tickets.exists():
         return JsonResponse({'status': 'not_found', 'message': 'No se encontraron boletos con los datos proporcionados.'})
