@@ -13,13 +13,6 @@
                 <div class="premio-botones">
                     <a href="{% url 'detalle_sorteo' sorteo_principal.id %}" id='btn-comprar' class="btn-comprar">Comprar 🎟️</a>
                     <button type="button" class="btn-ver-boletos" data-bs-toggle="modal" data-bs-target="#findTicketsModal">Ver mis tickets comprados</button>
-                    <div class="boletos-vendidos">
-                        <h3>Boletos vendidos</h3>
-                        <div class="progress-bar">
-                            <div class="progress" style="width: {{ sorteo_principal.percentage_sold }}%; " data-progress="{{ sorteo_principal.percentage_sold}}%;"></div>
-                            <span class="progress-text">{{ sorteo_principal.percentage_sold }}%</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
